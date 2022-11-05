@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/views/style.css">
+  <title>SWGU Library</title>
+</head>
+<body>
+  <div class="container">
+    <h1>SWGU Library</h1>
+    <form method="POST" action="/upload" enctype="multipart/form-data" id="upload-container">
+      <select name="Category" id="category">
+        <option selected disabled>Category</option>
+        <option value="character-sprites">Character Sprites</option>
+        <option value="game-tiles">Game Tiles</option>
+        <option value="objects">Objects</option>
+        <option value="scenes">Scenes</option>
+        <option value="toon-cards-front">Toon cards (front)</option>
+        <option value="toon-cards-back">Toon cards (back)</option>
+        <option value="toon-hero">Toon hero</option>
+        <option value="toon-remnant">Toon remnant</option>
+      </select>
+      <input type="file" name="asset" id="file-upload">
+      <input type="submit" id="submit">
+    </form>
+  </div>
+</body>
+</html>
