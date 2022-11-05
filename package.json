@@ -1,0 +1,17 @@
+{
+  "name": "swgu-media",
+  "version": "0.0.1",
+  "description": "The Hosting Library for the Star Wars Galaxy Ultimate",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "swgu",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "nodemon": "^2.0.20"
+  }
+}
