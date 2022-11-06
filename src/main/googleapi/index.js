@@ -57,6 +57,7 @@ export const uploadFileToDrive = async (fileOptions, category) => {
 }
 
 export const downloadFiles = async (category) => {
+  console.log(`starting download process for category: ${category}...`);
   const driveService = google.drive({version: 'v3', auth});
   const parentFolderId = [getId(category)];
   const listResponse = await driveService.files.list({
@@ -65,14 +66,19 @@ export const downloadFiles = async (category) => {
   });
 
   switch(listResponse.status) {
-      case 200:
-          for (const file of listResponse.data.files) {
-            await downloadFile(file.id, file.name, category);
-          }
-          return listResponse.data;
-      default:
-          console.error("Error retrieving file data");
-          return "Error retrieving file data";
+    case 200:
+      if (listResponse.data.files.length < 1) {
+        console.log(`${category} drive folder is empty`);
+        return;
+      }
+      for (const file of listResponse.data.files) {
+        await downloadFile(file.id, file.name, category);
+      }
+      console.log(`Finished downloading all ${category} files...`);
+      return listResponse.data;
+    default:
+      console.error("Error downloading file data");
+      return "Error downloading file data";
   }
 }
 

@@ -6,7 +6,7 @@ const Constants = {
   baseurl: process.env.NODE_ENV === 'production' 
     ? "https://swgu-library.onrender.com"
     : `http://localhost:${process.env.PORT}`,
-  categories: ['CARD_FRONTS', 'CARD_BACKS', 'CARD_HEROS', 'CARD_REMNANTS', 'SPRITES', 'BACKGROUNDS',
+  categories: ['CARD_FRONTS', 'CARD_BACKS', 'CARD_HEROS', 'CARD_REMNANTS', 'SPRITES', 'BACKGROUNDS', 'GAME_TILES',
       'SFX', 'LOFI', 'HIPHOP']
 }
 

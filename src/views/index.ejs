@@ -11,11 +11,21 @@
   <div class="container">
     <h1>SWGU Library</h1>
     <div class="actions">
-      <p><a href="<%= baseurl + '/all' %>"><-- VIEW ALL ASSETS --></a></p>
-      <p><a href="<%= baseurl + '/all/drive' %>"><-- DOWNLOAD FROM DRIVE --></a></p>
 
+      <h2>ACTIONS:</h2>
+      <p><a href="<%= baseurl + '/all' %>"><-- VIEW ALL ASSETS --></a></p>
+      <p><a href="<%= baseurl + '/drive/download' %>"><-- DOWNLOAD ENTIRE DRIVE --></a></p>
+      <p><-- DOWNLOAD FROM DRIVE BY CATEGORY --></p>
+      <select name="Category-Download" id="category-download" onchange="downloadCategory()">
+        <option selected disabled>Triggers On Change</option>
+        <% for (let i = 1; i < categories.length; i++) { %>
+          <option value="<%= categories[i] %>"><%= categories[i] %></option>
+        <% } %>
+      </select>
     </div>
+
     <form method="POST" action="/upload" enctype="multipart/form-data" id="upload-container">
+      <h3>Upload a Single File</h3>
       <select name="Category" id="category">
         <option selected disabled>Category</option>
         <option value="SPRITES">Character Sprites</option>
@@ -34,5 +44,20 @@
       <input type="submit" id="submit">
     </form>
   </div>
+
+
+
+  <script>
+    const downloadCategory = () => {
+      const category = document.querySelector('#category-download').value;
+      if (category) {
+        const link = document.createElement('a');
+        link.href = `/drive/download?category=${category}`;
+        console.log(link.href);
+        link.click();
+      }
+    }
+  </script>
+
 </body>
 </html>

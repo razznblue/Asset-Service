@@ -59,27 +59,31 @@ app.set("view engine", "ejs");
 app.use(express.static("public"));
 
 app.get("/", (req, res) => {
-  res.render(`${__dirname}/src/views/index.ejs`, { baseurl: baseurl });
+  const categories = Constants.categories;
+  res.render(`${__dirname}/src/views/index.ejs`, { baseurl: baseurl, categories: categories });
 });
 
 app.get("/all", async(req, res) => {
   listImagePaths(res);
 });
 
-app.get("/all/drive", async(req, res) => {
-  const ALL = 'all';
+app.get("/drive/download", async(req, res) => {
+  const ALL = 'all'
   const category = !req.query.category ? ALL : req.query.category;
+  const responseMsg = `downloading ${category} files from drive... Check logs for status. You can exit out of this page now.`;
+  const finishMsg = `Finished Entire Download Process`;
   if (category == ALL) {
-    res.send(`downloading ${ALL} files from drive...`);
+    res.send(responseMsg);
     const categories = Constants.categories;
     for (const category of categories) {
-      console.log(`processing category ${category}...`);
       await downloadFiles(category);
     }
+    console.log(finishMsg);
     return;
   }
+  res.send(responseMsg);
   await downloadFiles(category);
-  res.send(`downloading ${category} files from drive...`);
+  console.log(finishMsg);
 });
 
 app.post("/upload", async (req, res) => {
@@ -93,16 +97,17 @@ app.post("/upload", async (req, res) => {
       mimetype: file.mimetype,
       filepath: filePath
     }
-    await uploadFileToDrive(fileOptions, category);
 
     res.status(200).send({
-      message: 'File Uploaded',
+      message: `File will be uploaded to ${category} folder`,
       url: `${baseurl}/images/${category}/${file.filename}`,
       filename: file.filename,
       mimetype: file.mimetype,
       size: file.size,
       fieldname: file.fieldname
     });
+
+    await uploadFileToDrive(fileOptions, category);
   });
 });
 
