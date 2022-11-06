@@ -7,8 +7,10 @@ import fs from "fs";
 import multer from "multer";
 
 import Constants from "./src/constants/Constants.js";
-import listImagePaths from "./src/main/all.js";
+import listPaths from "./src/main/all.js";
 import { uploadFileToDrive, downloadFiles } from "./src/main/googleapi/index.js";
+import getParentCategory from "./src/constants/CategoryMap.js";
+import isValidMimetype from "./src/constants/MimeType.js";
 
 dotenv.config();
 const app = express();
@@ -22,15 +24,16 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let filePath = null;
     const category = req.body.Category;
+    const parentCategory = getParentCategory(category);
     if (category) {
-      filePath = `public/images/${category}`;
+      filePath = `public/${parentCategory}/${category}`;
       const pathExists = fs.existsSync(filePath);
       if (!pathExists) {
         fs.mkdirSync(filePath, { recursive: true });
       }
     }
 
-    cb(null, filePath !== null ? filePath : 'public/images');
+    cb(null, filePath !== null ? filePath : `public/${parentCategory}`);
   },
   filename: (err, file, cb) => {
     cb(null, file.originalname)
@@ -38,12 +41,12 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({
-  storage: storage ,
+  storage: storage,
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === "image/png" || file.mimetype === "image/jpg" || file.mimetype === "image/webp") {
+    if (isValidMimetype(file.mimetype)) {
       cb(null, true);
     } else {
-      return cb(new Error(`Invalid mime type found: [${file.mimetype}]`));
+      return cb(new Error(`File not uploaded. Invalid mime type found: [${file.mimetype}]`));
     }
   }
 });
@@ -64,7 +67,14 @@ app.get("/", (req, res) => {
 });
 
 app.get("/all", async(req, res) => {
-  listImagePaths(res);
+  const response = {}
+  const folders = ['images', 'audio', 'json'];
+  for (const folder of folders) {
+    const paths = await listPaths(res, folder);
+    response[folder] = paths;
+    console.log(`finished listing paths for ${folder} folder`);
+  }
+  res.send(response);
 });
 
 app.get("/drive/download", async(req, res) => {
@@ -91,7 +101,8 @@ app.post("/upload", async (req, res) => {
     if (err) { return res.status(400).send({ message: err.message }) };
     const file = req.file;
     const category = req.body.Category;
-    const filePath = path.join(__dirname, 'public', 'images', category, file.filename );
+    const parentCategory = getParentCategory(category);
+    const filePath = path.join(__dirname, 'public', parentCategory, category, file.filename );
     const fileOptions = {
       filename: file.filename,
       mimetype: file.mimetype,
@@ -99,8 +110,8 @@ app.post("/upload", async (req, res) => {
     }
 
     res.status(200).send({
-      message: `File will be uploaded to ${category} folder`,
-      url: `${baseurl}/images/${category}/${file.filename}`,
+      message: `File will be uploaded to ${parentCategory}/${category} folder`,
+      url: `${baseurl}/${parentCategory}/${category}/${file.filename}`,
       filename: file.filename,
       mimetype: file.mimetype,
       size: file.size,

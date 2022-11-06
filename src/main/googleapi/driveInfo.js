@@ -12,6 +12,11 @@ const driveFolderIds = {
     LOFI: '1gay5i4p03L9xi3-7uydsiJqt6VXp4Qnr',
     HIPHOP: '1UN3vcEzYtNKlPJk8tyLRtvmvaOqyOwEx',
     SFX: '1zAO-IPyh0-hf4z_LoPsBQycNiWpIust8'
+  },
+  json: {
+    CHARACTERS: '1PIGS2ckP1YYOQSdrv4jI7Djel0K3r6Yp',
+    GEAR: '1JVvtcZjU44ToHBTb3trdgHa65hlamD9E',
+    ABILITIES: '1hVIkFnypDI_UxPNSgI-vM4jh_UaOGdZs'
   }
 }
 
@@ -21,6 +26,9 @@ export const getId = (folderName) => {
   }
   if (driveFolderIds.audio[folderName]) {
     return driveFolderIds.audio[folderName];
+  }
+  if (driveFolderIds.json[folderName]) {
+    return driveFolderIds.json[folderName];
   }
 }
 

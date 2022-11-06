@@ -5,7 +5,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon --experimental-specifier-resolution=node index.js"
+    "start": "node --experimental-specifier-resolution=node index.js",
+    "start:dev": "nodemon --experimental-specifier-resolution=node index.js"
+  },
+  "nodemonConfig": {
+    "ignore": ["public/*"]
   },
   "keywords": [],
   "author": "swgu",

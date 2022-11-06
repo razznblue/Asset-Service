@@ -8,23 +8,22 @@ import Constants from '../constants/Constants.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const listImagePaths = async (res) => {
-  if (!fs.existsSync(path.join(__dirname, '..', '..', 'public', 'images'))) {
-    res.send({'msg': 'Images folder not found. Maybe try triggering a download from the home page?'});
-    return;
+const listPaths = async (res, folderName) => {
+  if (!fs.existsSync(path.join(__dirname, '..', '..', 'public', folderName))) {
+    return {'msg': `${folderName} folder not found. Maybe try triggering a download from the home page?`};
   }
-  const images = path.join(__dirname, '..', '..', 'public', 'images');
-  const directories = await readdir(images, { withFileTypes: true });
+  const folderPath = path.join(__dirname, '..', '..', 'public', folderName);
+  const directories = await readdir(folderPath, { withFileTypes: true });
 
   if (directories) {
     let response = {};
     const directoryNames = directories.filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
     for (const dir of directoryNames) {
-      const imgPath = path.join(__dirname, '..', '..', 'public', 'images', dir);
-      const files = await readdir(imgPath, { withFileTypes: true });
+      const resourcePath = path.join(__dirname, '..', '..', 'public', folderName, dir);
+      const files = await readdir(resourcePath, { withFileTypes: true });
       for (const file of files) {
-        file.url = `${Constants.baseurl}/images/${dir}/${file.name}`;
-        file.name = file.name.split('.')[0];
+        file.url = `${Constants.baseurl}/${folderName}/${dir}/${file.name}`;
+        file.name = file.name;
       }
       response[dir] = {
         files: files,
@@ -37,8 +36,8 @@ const listImagePaths = async (res) => {
         accumulator[key] = response[key];
         return accumulator;
     }, {});
-    res.send(response);
+    return response;
   }
 }
 
-export default listImagePaths;
+export default listPaths;

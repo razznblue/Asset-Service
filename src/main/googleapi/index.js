@@ -3,6 +3,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import pkg from 'googleapis';
 import { getId } from './driveInfo.js';
+import getParentCategory from '../../constants/CategoryMap.js';
 const { google } = pkg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -84,15 +85,16 @@ export const downloadFiles = async (category) => {
 
 const downloadFile = async (fileId, filename, category) => {
   const driveService = google.drive({version: 'v3', auth});
+  const parentCategory = getParentCategory(category);
 
   if (category) {
-    const filePath = `public/images/${category}`;
+    const filePath = `public/${parentCategory}/${category}`;
     const pathExists = fs.existsSync(filePath);
     if (!pathExists) {
       fs.mkdirSync(filePath, { recursive: true });
     }
   }
-  const writeStream = fs.createWriteStream(path.join(__dirname, '..', '..', '..', 'public', 'images', category, filename));
+  const writeStream = fs.createWriteStream(path.join(__dirname, '..', '..', '..', 'public', parentCategory, category, filename));
   const response = await driveService.files.get(
     { fileId: fileId, alt: 'media'},
     { responseType: 'stream' }
