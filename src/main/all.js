@@ -1,13 +1,18 @@
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
+import fs from 'fs';
 import { readdir } from 'fs/promises'
 
-import Constants from '../constants/Constants.js';
+import Constants from '../constants/Constants.js'; 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const listImagePaths = async (res) => {
+  if (!fs.existsSync(path.join(__dirname, '..', '..', 'public', 'images'))) {
+    res.send({'msg': 'Images folder not found. Maybe try triggering a download from the home page?'});
+    return;
+  }
   const images = path.join(__dirname, '..', '..', 'public', 'images');
   const directories = await readdir(images, { withFileTypes: true });
 
