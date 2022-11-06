@@ -36,17 +36,9 @@ export const uploadFileToDrive = async (fileOptions, category) => {
     q: 'trashed=false and "' + parentFolderId + '" in parents',
     fields: 'nextPageToken, files(id, name)'
   });
-  switch(listResponse.status) {
-    case 200:
-      const files = listResponse.data.files;
-      for (const file of files) {
-        if (file.name === filename) {
-          console.log(`Found duplicate file in drive: ${filename}`);
-        }
-      }
-      return;
-    default:
-      console.error("Files Not Found Or Error occured. Response status: " + listResponse.status);
+
+  if (listResponse.status !== 200) {
+    console.error("Files Not Found Or Error occured. Response status: " + listResponse.status);
   }
 
   //Create the file and upload it
