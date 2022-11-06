@@ -4,3 +4,4 @@ node_modules
 public/audio
 public/icons
 public/images
+credentials.json

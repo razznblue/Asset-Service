@@ -2,12 +2,13 @@ import express from "express";
 import axios from "axios";
 import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import path, { dirname } from 'path';
 import fs from "fs";
 import multer from "multer";
 
 import Constants from "./src/constants/Constants.js";
 import listImagePaths from "./src/main/all.js";
+import { uploadFileToDrive, downloadFiles } from "./src/main/googleapi/index.js";
 
 dotenv.config();
 const app = express();
@@ -61,20 +62,44 @@ app.get("/", (req, res) => {
   res.render(`${__dirname}/src/views/index.ejs`, { baseurl: baseurl });
 });
 
-app.get("/all", async (req, res) => {
+app.get("/all", async(req, res) => {
   listImagePaths(res);
 });
 
-app.post("/upload", (req, res) => {
-  uploadSingleImage(req, res, (err) => {
+app.get("/all/drive", async(req, res) => {
+  const ALL = 'all';
+  const category = !req.query.category ? ALL : req.query.category;
+  if (category == ALL) {
+    res.send(`downloading ${ALL} files from drive...`);
+    const categories = Constants.categories;
+    for (const category of categories) {
+      console.log(`processing category ${category}...`);
+      await downloadFiles(category);
+    }
+    return;
+  }
+  await downloadFiles(category);
+  res.send(`downloading ${category} files from drive...`);
+});
+
+app.post("/upload", async (req, res) => {
+  uploadSingleImage(req, res, async (err) => {
     if (err) { return res.status(400).send({ message: err.message }) };
     const file = req.file;
-    res.status(200).send({
-      message: 'File Uploaded',
-      url: `${baseurl}/images/${req.body.Category}/${file.filename}`,
+    const category = req.body.Category;
+    const filePath = path.join(__dirname, 'public', 'images', category, file.filename );
+    const fileOptions = {
       filename: file.filename,
       mimetype: file.mimetype,
-      originalname: file.originalname,
+      filepath: filePath
+    }
+    await uploadFileToDrive(fileOptions, category);
+
+    res.status(200).send({
+      message: 'File Uploaded',
+      url: `${baseurl}/images/${category}/${file.filename}`,
+      filename: file.filename,
+      mimetype: file.mimetype,
       size: file.size,
       fieldname: file.fieldname
     });

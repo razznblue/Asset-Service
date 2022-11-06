@@ -10,18 +10,25 @@
 <body>
   <div class="container">
     <h1>SWGU Library</h1>
-    <p><a href="<%= baseurl + '/all' %>"><-- VIEW ALL ASSETS --></a></p>
+    <div class="actions">
+      <p><a href="<%= baseurl + '/all' %>"><-- VIEW ALL ASSETS --></a></p>
+      <p><a href="<%= baseurl + '/all/drive' %>"><-- DOWNLOAD FROM DRIVE --></a></p>
+
+    </div>
     <form method="POST" action="/upload" enctype="multipart/form-data" id="upload-container">
       <select name="Category" id="category">
         <option selected disabled>Category</option>
-        <option value="character-sprites">Character Sprites</option>
-        <option value="game-tiles">Game Tiles</option>
-        <option value="objects">Objects</option>
-        <option value="scenes">Scenes</option>
-        <option value="toon-cards-front">Toon cards (front)</option>
-        <option value="toon-cards-back">Toon cards (back)</option>
-        <option value="toon-hero">Toon hero</option>
-        <option value="toon-remnant">Toon remnant</option>
+        <option value="SPRITES">Character Sprites</option>
+        <option value="BACKGROUNDS">Character Sprites</option>
+        <option value="GAME_TILES">Game Tiles</option>
+        <option value="CARD_FRONTS">Toon cards (front)</option>
+        <option value="CARD_BACKS">Toon cards (back)</option>
+        <option value="CARD_HEROS">Toon hero</option>
+        <option value="CARD_REMNANTS">Toon remnant</option>
+        <option disabled>Audio</option>
+        <option value="SFX">SFX</option>
+        <option value="LOFI">LOFI</option>
+        <option value="HIPHOP">Hip-Hop</option>
       </select>
       <input type="file" name="asset" id="file-upload">
       <input type="submit" id="submit">
