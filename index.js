@@ -6,13 +6,16 @@ import { dirname } from 'path';
 import fs from "fs";
 import multer from "multer";
 
+import Constants from "./src/constants/Constants.js";
+import listImagePaths from "./src/main/all.js";
+
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT;
 const env = process.env.NODE_ENV;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const baseurl = env === 'production' ? `https://swgu-library.onrender.com` : `http://localhost:${PORT}`;
+const PORT = Constants.port;
+const baseurl = Constants.baseurl;
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -55,7 +58,11 @@ app.set("view engine", "ejs");
 app.use(express.static("public"));
 
 app.get("/", (req, res) => {
-  res.sendFile(`${__dirname}/src/views/index.html`);
+  res.render(`${__dirname}/src/views/index.ejs`, { baseurl: baseurl });
+});
+
+app.get("/all", async (req, res) => {
+  listImagePaths(res);
 });
 
 app.post("/upload", (req, res) => {

@@ -8,6 +8,11 @@ body {
   background: rgb(129, 129, 129);
 }
 
+a {
+  text-decoration: none;
+  color: black;
+}
+
 .container {
   width: 100vw;
   min-height: 50vh;
