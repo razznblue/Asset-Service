@@ -9,13 +9,16 @@
     "start:dev": "nodemon --experimental-specifier-resolution=node index.js"
   },
   "nodemonConfig": {
-    "ignore": ["public/*"]
+    "ignore": [
+      "public/*"
+    ]
   },
   "keywords": [],
   "author": "swgu",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.27.2",
+    "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "ejs": "^3.1.8",
     "express": "^4.18.2",
