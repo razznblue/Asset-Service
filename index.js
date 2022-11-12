@@ -123,5 +123,12 @@ app.post("/upload", async (req, res) => {
 });
 
 app.listen(PORT || 8000, () => {
+  // Download all assets from drive after every PRODUCTION deploy
+  setTimeout(async () => {
+    if (process.env.NODE_ENV === 'production') {
+      console.log(`Production server started. Setting up hosted assets...`);
+      await axios.get(`${baseurl}/drive/download`);
+    }
+  }, 1000);
   console.log(`Listening to ${env} server on PORT ${PORT}`);
 });
