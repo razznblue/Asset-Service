@@ -5,7 +5,6 @@ import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import fs from "fs";
 import multer from "multer";
-import cors from 'cors';
 
 import Constants from "./src/constants/Constants.js";
 import listPaths from "./src/main/all.js";
@@ -61,24 +60,6 @@ setInterval(async () => {
 
 app.set("view engine", "ejs"); 
 app.use(express.static("public"));
-
-//Enable CORS
-const whitelist = process.env.ALLOWED_ORIGINS.split(' ');
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || whitelist.indexOf(origin) !== -1) {
-      console.log('(SWGU-LIBRARY) allowed cors for:', origin);
-      callback(null, true);
-    } else {
-      console.log('(SWGU-LIBRARY) blocked cors for:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  allowedHeaders: 'Content-Type, Accept, Authorization, Origin',
-  preflightContinue: false,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  credentials: true,
-}))
 
 app.get("/", (req, res) => {
   const categories = Constants.categories;

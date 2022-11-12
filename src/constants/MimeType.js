@@ -1,3 +1,4 @@
+// MimeType Whitelist
 const mimetypes = [
   "image/webp",
   "image/png",

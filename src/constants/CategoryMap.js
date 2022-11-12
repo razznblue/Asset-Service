@@ -4,6 +4,7 @@ const CategoryMap = {
     'CARD_BACKS',
     'CARD_HEROS',
     'CARD_REMNANTS',
+    'CARD_OBJECTS',
     'SPRITES',
     'BACKGROUNDS',
     'GAME_TILES'
