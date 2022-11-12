@@ -4,6 +4,7 @@ const driveFolderIds = {
     CARD_BACKS: '1x1s2HpHk0JfpZn2nEyLBgfzgfpbCkUEG',
     CARD_HEROS: '1OxQpptNpt942kVUK1sdhZqZmtr0Hzy8N',
     CARD_REMNANTS: '1XwDDUvFBcfyGQsPJXV6KVOiuo6w4pxL7',
+    CARD_OBJECTS: '1o0AKyrYpjnjiBPDLvFws8ODlr3QkuVFZ',
     SPRITES: '1Ipd9Dkybb-j6rpDlSpbOSE1LJsRqINQ0',
     BACKGROUNDS: '1wfea8f_Ac2ar6oII9y_frWxDhiGz5vS2',
     GAME_TILES: '1Uhrcp4M5rxzlb8WEixqVI-j__bBft3il'
