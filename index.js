@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import fs from "fs";
 import multer from "multer";
+import cors from 'cors';
 
 import Constants from "./src/constants/Constants.js";
 import listPaths from "./src/main/all.js";
@@ -57,6 +58,9 @@ setInterval(async () => {
   await axios.get(Constants.baseurl);
   console.log('App Pinged');
 }, 600000);
+
+// Cors Functionality
+app.use(cors({ origin: '*' }));
 
 app.set("view engine", "ejs"); 
 app.use(express.static("public"));
