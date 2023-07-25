@@ -2,6 +2,8 @@ const CategoryMap = {
   images: [
     'CARD_FRONTS',
     'CARD_BACKS',
+    'DECKS',
+    'LOCATIONS',
     'OBJECTS',
     'ICONS',
     'BACKGROUNDS'
