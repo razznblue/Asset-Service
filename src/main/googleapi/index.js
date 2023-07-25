@@ -94,6 +94,7 @@ const downloadFile = async (fileId, filename, category) => {
       fs.mkdirSync(filePath, { recursive: true });
     }
   }
+
   const writeStream = fs.createWriteStream(path.join(__dirname, '..', '..', '..', 'public', parentCategory, category, filename));
   const response = await driveService.files.get(
     { fileId: fileId, alt: 'media'},
