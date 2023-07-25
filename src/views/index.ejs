@@ -18,7 +18,7 @@
       <p><-- DOWNLOAD FROM DRIVE BY CATEGORY --></p>
       <select name="Category-Download" id="category-download" onchange="downloadCategory()">
         <option selected disabled>Triggers On Change</option>
-        <% for (let i = 1; i < categories.length; i++) { %>
+        <% for (let i = 0; i < categories.length; i++) { %>
           <option value="<%= categories[i] %>"><%= categories[i] %></option>
         <% } %>
       </select>
@@ -28,13 +28,9 @@
       <h3>Upload a Single File</h3>
       <select name="Category" id="category">
         <option selected disabled>Category</option>
-        <option value="BACKGROUNDS">Backgrounds</option>
-        <option value="CARD_FRONTS">Card Fronts</option>
-        <option value="CARD_BACKS">Card Backs</option>
-        <option value="OBJECTS">Objects</option>
-        <option value="ICONS">Icons</option>
-        <option value="AUDIO">Audio</option>
-        <option disabled>Json</option>
+        <% for (let i = 0; i < categories.length; i++) { %>
+          <option value="<%= categories[i] %>"><%= categories[i] %></option>
+        <% } %>
       </select>
       <input type="file" name="asset" id="file-upload">
       <input type="submit" id="submit">
