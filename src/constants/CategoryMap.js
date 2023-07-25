@@ -2,22 +2,15 @@ const CategoryMap = {
   images: [
     'CARD_FRONTS',
     'CARD_BACKS',
-    'CARD_HEROS',
-    'CARD_REMNANTS',
-    'CARD_OBJECTS',
-    'SPRITES',
-    'BACKGROUNDS',
-    'GAME_TILES'
+    'OBJECTS',
+    'ICONS',
+    'BACKGROUNDS'
   ],
   audio: [
-    'LOFI',
-    'HIPHOP',
-    'SFX'
+    'AUDIO'
   ],
   json: [
-    'CHARACTERS',
-    'GEAR',
-    'ABILITIES'
+    'JSON'
   ]
 }
 
