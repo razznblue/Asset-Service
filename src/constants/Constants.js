@@ -6,7 +6,7 @@ const Constants = {
   baseurl: process.env.NODE_ENV === 'production' 
     ? "https://swgu-library.onrender.com"
     : `http://localhost:${process.env.PORT}`,
-  categories: ['CARD_FRONTS', 'CARD_BACKS', 'OBJECTS', 'ICONS', 'BACKGROUNDS', 'AUDIO', 'JSON']
+  categories: ['CARD_FRONTS', 'CARD_BACKS', 'DECKS', 'LOCATIONS', 'OBJECTS', 'ICONS', 'BACKGROUNDS', 'AUDIO', 'JSON']
 }
 
 export default Constants;
