@@ -4,6 +4,8 @@ dotenv.config();
 const driveFolderIds = {
   CARD_FRONTS: process.env.DRIVE_CARD_FRONTS,
   CARD_BACKS: process.env.DRIVE_CARD_BACKS,
+  DECKS: process.env.DRIVE_DECKS,
+  LOCATIONS: process.env.DRIVE_LOCATIONS,
   OBJECTS: process.env.DRIVE_OBJECTS,
   BACKGROUNDS: process.env.DRIVE_BACKGROUNDS,
   ICONS: process.env.DRIVE_ICONS,
