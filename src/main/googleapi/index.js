@@ -4,6 +4,8 @@ import { fileURLToPath } from 'url';
 import pkg from 'googleapis';
 import { getId } from './driveInfo.js';
 import getParentCategory from '../../constants/CategoryMap.js';
+import dotenv from 'dotenv';
+dotenv.config();
 const { google } = pkg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -121,27 +123,53 @@ const downloadFile = async (fileId, filename, category) => {
   }
 }
 
+/* List all folders in Category */
+export const getFolderNames = async (category) => {
+  const driveService = google.drive({version: 'v3', auth});
+  const folders = [];
+  const parentFolderId = [matchParentFolderNameToId(category)];
+
+  try {
+    const response = await driveService.files.list({
+      q: `'${parentFolderId}' in parents and mimeType='application/vnd.google-apps.folder'`,
+      fields: 'files(id, name)'
+    });
+  
+    const fetchedFolders = response.data.files;
+    if (fetchedFolders && fetchedFolders.length > 0) {
+      fetchedFolders.forEach(function (folder) {
+        folders.push(folder.name);
+      });
+    } else {
+      console.log('No folders found.');
+    }
+  } catch(err) {
+    console.error(`Error fetching folder for category ${category} -`, err?.message)
+  }
+
+  return folders;
+}
+
 export const addNewFolder = async (folderName, category) => {
   const driveService = google.drive({ version: 'v3', auth });
-  const parentFolderId = [getId(category)];
-
+  const parentFolderId = [matchParentFolderNameToId(category)];
 
   const file = await createFolder(folderName, parentFolderId, driveService);
-  console.log(file.data.id);
 
   // Added: Transfer owner of created folder from service account to your Google account.
   const folderId = file.data.id;
+  console.log(`Created new folder ${folderName} under category ${category}`);
   if (!folderId) return;
   const res2 = await driveService.permissions
     .create({
       resource: {
         type: "user",
-        role: "owner",
-        emailAddress: "swuniverseapi@gmail.com"  // Please set your email address of Google account.
+        role: "writer",
+        emailAddress: "swuniverseapi@gmail.com" 
       },
       fileId: folderId,
       fields: "id",
-      transferOwnership: true,
+      transferOwnership: false,
       moveToNewOwnersRoot: true,
     })
     .catch((err) => console.log(err));
@@ -151,14 +179,20 @@ const createFolder = async (folderName, parentFolderId, service) => {
   const fileMetadata = {
     name: folderName,
     mimeType: 'application/vnd.google-apps.folder',
+    parents: parentFolderId
   };
   try {
     return await service.files.create({
       resource: fileMetadata,
-      fields: 'id',
-      parents: [parentFolderId]
+      fields: 'id'
     });
   } catch(err) {
     console.error(`Error creating folder ${folderName}`)
   }
+}
+
+const matchParentFolderNameToId = (category) => {
+  const folderId = process.env[`DRIVE_${category.toUpperCase()}`];
+  console.log(`Matched Category ${category} to FolderId ${folderId}`);
+  return folderId;
 }

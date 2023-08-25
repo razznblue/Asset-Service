@@ -36,11 +36,14 @@
 
     <form method="POST" action="/upload" enctype="multipart/form-data" class="upload-widget" id="upload-container">
       <h3>UPLOAD a Single File</h3>
-      <select name="Category" class="upload-item" id="category">
+      <select name="Category" class="upload-item" id="category" onchange="populateFolders()">
         <option selected disabled>Category</option>
         <% for (let i = 0; i < categories.length; i++) { %>
           <option value="<%= categories[i] %>"><%= categories[i] %></option>
         <% } %>
+      </select>
+      <select name="Folder" class="upload-item" id="category-folder">
+        <!-- <option selected disabled>Folders(choose category first)</option> -->
       </select>
       <input type="file" name="asset" class="upload-item" id="file-upload">
       <input type="submit" id="submit">
@@ -59,6 +62,34 @@
         link.click();
       }
     }
+
+    const populateFolders = async () => {
+      const category = document.querySelector('#category').value;
+      if (category) {
+        /* call node route to get foldersby category */
+        const response = await fetch(`/drive/folders?category=${category}`);
+        if (!response.ok) throw new Error('Request failed with status ' + response.status);
+
+        console.log(`Populating folders in category ${category}`);
+        const categoryFolderSelect = document.querySelector('#category-folder');
+        /* Remove any previously populated folders */
+        while (categoryFolderSelect.firstChild) {
+          categoryFolderSelect.removeChild(categoryFolderSelect.firstChild);
+        }
+
+        /* Populate the category-folder Select element with options */
+        const data = await response.json();
+        for (let i = 0; i < data.length; i++) {
+          const folderName = data[i];
+          const optionElement = document.createElement('option');
+          optionElement.value = folderName;
+          optionElement.name = folderName;
+          optionElement.textContent = folderName;
+          categoryFolderSelect.appendChild(optionElement);
+        }
+      }
+    }
+
   </script>
 
 </body>

@@ -9,7 +9,7 @@ import cors from 'cors';
 
 import Constants from "./src/constants/Constants.js";
 import listPaths from "./src/main/all.js";
-import { uploadFileToDrive, downloadFiles, addNewFolder } from "./src/main/googleapi/index.js";
+import { uploadFileToDrive, downloadFiles, addNewFolder, getFolderNames } from "./src/main/googleapi/index.js";
 import getParentCategory from "./src/constants/CategoryMap.js";
 import isValidMimetype from "./src/constants/MimeType.js";
 
@@ -68,7 +68,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  const categories = Constants.categories;
+  const categories = ["IMAGES", "AUDIO", "JSON"];
   res.render(`${__dirname}/src/views/index.ejs`, { baseurl: baseurl, categories: categories });
 });
 
@@ -143,10 +143,28 @@ app.post("/upload", async (req, res) => {
 app.post('/drive/folders', async (req, res) => {
   const folderName = req?.body?.folder;
   const category = req?.body?.category;
+  const categories = ['IMAGES', 'AUDIO', 'JSON'];
+  if (!categories.includes(category)) return res.status(400).send(`Category must be one of "IMAGES", "AUDIO", or "JSON"`);
   res.send(`Folder ${folderName} will be created under category ${category}`);
 
   await addNewFolder(folderName, category)
 
+})
+
+app.get('/drive/folders', async(req, res) => {
+  const categories = ['IMAGES', 'AUDIO', 'JSON'];
+  if (req?.query?.category && categories.includes(req?.query?.category)) {
+    console.log(`Returning all folders under category ${req?.query?.category}`)
+    return res.send(await getFolderNames(req?.query?.category));
+  }
+
+  const IMAGES = await getFolderNames('IMAGES');
+  const AUDIO = await getFolderNames('AUDIO');
+  const JSON = await getFolderNames('JSON');
+  const folders = IMAGES.concat(AUDIO, JSON);
+  console.log('FOLDER NAMES:')
+  console.log(folders);
+  return res.send(folders);
 })
 
 app.listen(PORT || 8000, () => {
