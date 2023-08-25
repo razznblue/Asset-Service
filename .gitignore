@@ -1,6 +1,6 @@
 *.env
 node_modules
-.DS-Store
+.DS_Store
 public/audio
 public/icons
 public/images

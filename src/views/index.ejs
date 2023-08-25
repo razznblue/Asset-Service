@@ -9,9 +9,12 @@
 </head>
 <body>
   <div class="container">
-    <h1>SWGU Library</h1>
-    <div class="actions">
+    <div id="head">
+      <h1>ASSET SERVICE</h1>
+      <p>A platform designed to store, host, and retrieve assets, photos, files, etc.</p><hr class="hr">
+    </div>
 
+    <div class="actions">
       <h2>ACTIONS:</h2>
       <p><a href="<%= baseurl + '/all' %>"><-- VIEW ALL ASSETS --></a></p>
       <p><a href="<%= baseurl + '/drive/download' %>"><-- DOWNLOAD ENTIRE DRIVE --></a></p>
@@ -22,17 +25,24 @@
           <option value="<%= categories[i] %>"><%= categories[i] %></option>
         <% } %>
       </select>
-    </div>
+    </div><hr class="hr">
 
-    <form method="POST" action="/upload" enctype="multipart/form-data" id="upload-container">
-      <h3>Upload a Single File</h3>
-      <select name="Category" id="category">
+    <form method="POST" action="/drive/folders" enctype="application/x-www-form-urlencoded" class="upload-widget" id="new-folder-container">
+      <h3>Add a NEW drive folder under a category</h3>
+      <input name="folder" type="text" placeholder="Folder Name" class="upload-item">
+      <input name="category" type="text" placeholder='Must be one of ["IMAGES", "AUDIO", "JSON"]' class="upload-item">
+      <input type="submit">
+    </form><hr class="hr">
+
+    <form method="POST" action="/upload" enctype="multipart/form-data" class="upload-widget" id="upload-container">
+      <h3>UPLOAD a Single File</h3>
+      <select name="Category" class="upload-item" id="category">
         <option selected disabled>Category</option>
         <% for (let i = 0; i < categories.length; i++) { %>
           <option value="<%= categories[i] %>"><%= categories[i] %></option>
         <% } %>
       </select>
-      <input type="file" name="asset" id="file-upload">
+      <input type="file" name="asset" class="upload-item" id="file-upload">
       <input type="submit" id="submit">
     </form>
   </div>

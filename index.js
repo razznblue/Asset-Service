@@ -9,7 +9,7 @@ import cors from 'cors';
 
 import Constants from "./src/constants/Constants.js";
 import listPaths from "./src/main/all.js";
-import { uploadFileToDrive, downloadFiles } from "./src/main/googleapi/index.js";
+import { uploadFileToDrive, downloadFiles, addNewFolder } from "./src/main/googleapi/index.js";
 import getParentCategory from "./src/constants/CategoryMap.js";
 import isValidMimetype from "./src/constants/MimeType.js";
 
@@ -64,12 +64,17 @@ app.use(cors({ origin: '*' }));
 
 app.set("view engine", "ejs"); 
 app.use(express.static("public"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
   const categories = Constants.categories;
   res.render(`${__dirname}/src/views/index.ejs`, { baseurl: baseurl, categories: categories });
 });
 
+/**
+ * Lists ALL of the files metadata in json format
+ */
 app.get("/all", async(req, res) => {
   const response = {}
   const folders = ['images', 'audio', 'json'];
@@ -81,6 +86,9 @@ app.get("/all", async(req, res) => {
   res.send(response);
 });
 
+/**
+ * Downloads Files by folder or ALL at once
+ */
 app.get("/drive/download", async(req, res) => {
   const ALL = 'all'
   const category = !req.query.category ? ALL : req.query.category;
@@ -100,6 +108,9 @@ app.get("/drive/download", async(req, res) => {
   console.log(finishMsg);
 });
 
+/**
+ * UPLOADS a single file to a specific folder
+ */
 app.post("/upload", async (req, res) => {
   uploadSingleImage(req, res, async (err) => {
     if (err) { return res.status(400).send({ message: err.message }) };
@@ -125,6 +136,18 @@ app.post("/upload", async (req, res) => {
     await uploadFileToDrive(fileOptions, category);
   });
 });
+
+/**
+ * Add a New Folder to the Drive under a specific Category
+ */
+app.post('/drive/folders', async (req, res) => {
+  const folderName = req?.body?.folder;
+  const category = req?.body?.category;
+  res.send(`Folder ${folderName} will be created under category ${category}`);
+
+  await addNewFolder(folderName, category)
+
+})
 
 app.listen(PORT || 8000, () => {
   // Download all assets from drive after every PRODUCTION deploy
