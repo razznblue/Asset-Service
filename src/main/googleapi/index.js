@@ -4,7 +4,9 @@ import { fileURLToPath } from 'url';
 import pkg from 'googleapis';
 import { getId } from './driveInfo.js';
 import getParentCategory from '../../constants/CategoryMap.js';
+import BaseModel from '../../config/models/BaseModel.js';
 import dotenv from 'dotenv';
+import { Folder } from '../../config/models/Folder.js';
 dotenv.config();
 const { google } = pkg;
 const __filename = fileURLToPath(import.meta.url);
@@ -24,19 +26,23 @@ const auth = new google.auth.GoogleAuth({
  * @param {*} fileOptions (filename, filepath, mimetype)
  * @param {*} category The folder under which the file will be uploaded to
  */
-export const uploadFileToDrive = async (fileOptions, category) => {
+export const uploadFileToDrive = async (fileOptions, folder) => {
   const driveService = google.drive({ version: 'v3', auth });
-  const parentFolderId = [getId(category)];
+  const parentFolderId = await getFolderDriveId(folder);
   const { filename, mimetype, filepath } = fileOptions;
+
+  console.log('irur');
+  console.log(parentFolderId);
+  console.log(fileOptions);
 
   // Set the metaData and Media in preparation for file upload.
   let fileMetaData = {
     name: filename,
-    parents: parentFolderId
+    parents: [parentFolderId]
   }
   let media = {
-      mimeType: mimetype,
-      body: fs.createReadStream(filepath)
+    mimeType: mimetype,
+    body: fs.createReadStream(filepath)
   }
 
   const listResponse = await driveService.files.list({
@@ -57,7 +63,7 @@ export const uploadFileToDrive = async (fileOptions, category) => {
   });
   switch(createResponse.status) {
     case 200:
-        console.log(`File [${filename}] uploaded to drive in folder [${category}]`);
+        console.log(`File [${filename}] uploaded to drive in folder [${folder}]`);
         break;
     default:
         console.error(`Error uploading [${filename}] to drive. Status: ${createResponse.status}`);
@@ -136,9 +142,12 @@ export const getFolderNames = async (category) => {
     });
   
     const fetchedFolders = response.data.files;
+
     if (fetchedFolders && fetchedFolders.length > 0) {
-      fetchedFolders.forEach(function (folder) {
+      fetchedFolders.forEach(async (folder) => {
+        /* Create Mongo record of folder in case it DNE */
         folders.push(folder.name);
+        await createFolderRecord(folder, category);
       });
     } else {
       console.log('No folders found.');
@@ -193,6 +202,30 @@ const createFolder = async (folderName, parentFolderId, service) => {
 
 const matchParentFolderNameToId = (category) => {
   const folderId = process.env[`DRIVE_${category.toUpperCase()}`];
-  console.log(`Matched Category ${category} to FolderId ${folderId}`);
+  // console.log(`Matched Category ${category} to FolderId ${folderId}`);
   return folderId;
+}
+
+const getFolderDriveId = async (folderName) => {
+  const folder = await Folder.findOne({name: folderName});
+  if (!folder) console.error(`Folder not found with name ${folderName}`);
+  else {
+    return folder.driveId;
+  }
+}
+
+const createFolderRecord = async (folder, category) => {
+  try {
+    const exists = await Folder.findOne({name: folder.name});
+    if (!exists) {
+      const newFolder = new Folder();
+      newFolder.name = folder.name;
+      newFolder.driveId = folder.id;
+      newFolder.category = category;
+      await newFolder.save();
+      console.log(`saved new folder ${folder.name}`);
+    }
+  } catch(err) {
+    console.error(`Error saving folder ${folder}`, err?.message);
+  }
 }

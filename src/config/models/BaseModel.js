@@ -1,4 +1,4 @@
-import { Folder } from "./Folder.js";
+import { Folder } from "./Folder";
 
 const models = {
   folder: Folder,
@@ -54,6 +54,14 @@ const BaseModel = {
     }
   },
 
+  async insertDocuments(modelName, document) {
+    try {
+      return await models[modelName].insertOne(document);
+    } catch(err) {
+      LOGGER.error(`Error inserting ALL documents into ${modelName} collection. \n${err}`);
+    }
+  },
+
   async insertAllDocuments(modelName, documents) {
     try {
       return await models[modelName].insertMany(documents);
@@ -75,15 +83,6 @@ const BaseModel = {
       return await models[modelName].deleteMany({});
     } catch(err) {
       LOGGER.error(`Error removing ALL documents from ${modelName} collection. \n${err}`);
-    }
-  },
-
-  async getGameId(gameName) {
-    try {
-      const game = await models['game'].findOne({ name: gameName }, '_id');
-      return game._id;
-    } catch(err) {
-      LOGGER.error(`Error fetching gameId from name ${gameName}. \n${err}`);
     }
   }
 

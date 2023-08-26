@@ -24,14 +24,16 @@ const baseurl = Constants.baseurl;
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let filePath = null;
-    const category = req.body.Category;
-    const parentCategory = getParentCategory(category);
-    if (category) {
-      filePath = `public/${parentCategory}/${category}`;
+    const category = req?.body?.Category;
+    const folder = req?.body?.Folder
+    if (category && folder) {
+      filePath = `public/${category}/${folder}`;
       const pathExists = fs.existsSync(filePath);
       if (!pathExists) {
         fs.mkdirSync(filePath, { recursive: true });
       }
+    } else {
+      console.error(`Could not upload file to local storage. Category: ${category}, Folder: ${folder}`);
     }
 
     cb(null, filePath !== null ? filePath : `public/${parentCategory}`);
@@ -90,6 +92,7 @@ app.get("/all", async(req, res) => {
  * Downloads Files by folder or ALL at once
  */
 app.get("/drive/download", async(req, res) => {
+  console.log('Downloading ENTIRE Drive');
   const ALL = 'all'
   const category = !req.query.category ? ALL : req.query.category;
   const responseMsg = `downloading ${category} files from drive... Check logs for status. You can exit out of this page now.`;
@@ -115,9 +118,9 @@ app.post("/upload", async (req, res) => {
   uploadSingleImage(req, res, async (err) => {
     if (err) { return res.status(400).send({ message: err.message }) };
     const file = req.file;
-    const category = req.body.Category;
-    const parentCategory = getParentCategory(category);
-    const filePath = path.join(__dirname, 'public', parentCategory, category, file.filename );
+    const parentCategory = req?.body?.Category
+    const folder = req?.body?.Folder;
+    const filePath = path.join(__dirname, 'public', parentCategory, folder, file.filename );
     const fileOptions = {
       filename: file.filename,
       mimetype: file.mimetype,
@@ -125,15 +128,15 @@ app.post("/upload", async (req, res) => {
     }
 
     res.status(200).send({
-      message: `File will be uploaded to ${parentCategory}/${category} folder`,
-      url: `${baseurl}/${parentCategory}/${category}/${file.filename}`,
+      message: `File will be uploaded to ${parentCategory}/${folder} folder`,
+      url: `${baseurl}/${parentCategory}/${folder}/${file.filename}`,
       filename: file.filename,
       mimetype: file.mimetype,
       size: file.size,
       fieldname: file.fieldname
     });
 
-    await uploadFileToDrive(fileOptions, category);
+    await uploadFileToDrive(fileOptions, folder);
   });
 });
 
@@ -158,13 +161,11 @@ app.get('/drive/folders', async(req, res) => {
     return res.send(await getFolderNames(req?.query?.category));
   }
 
+  console.log(`Returning all folders under all categories`);
   const IMAGES = await getFolderNames('IMAGES');
   const AUDIO = await getFolderNames('AUDIO');
   const JSON = await getFolderNames('JSON');
-  const folders = IMAGES.concat(AUDIO, JSON);
-  console.log('FOLDER NAMES:')
-  console.log(folders);
-  return res.send(folders);
+  return res.send(IMAGES.concat(AUDIO, JSON));
 })
 
 app.listen(PORT || 8000, () => {
@@ -174,6 +175,6 @@ app.listen(PORT || 8000, () => {
       console.log(`Production server started. Setting up hosted assets...`);
       await axios.get(`${baseurl}/drive/download`);
     }
-  }, 1000);
+  }, 5000);
   console.log(`Listening to ${env} server on PORT ${PORT}`);
 });

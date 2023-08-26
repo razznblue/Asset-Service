@@ -3,10 +3,12 @@ import { coreConnection } from '../db.js';
 
 const CollectionName = "Folder";
 
-const AdminSchema = new mongoose.Schema (
+const FolderSchema = new mongoose.Schema (
   {
-    driveFolderId: { type: String },
-  }, { timestamps: false, versionKey: false, collection: CollectionName }
+    name: { type: String },
+    driveId: { type: String },
+    category: { type: String }
+  }, { timestamps: true, versionKey: false, collection: CollectionName }
 );
 
-export const Folder = coreConnection.model(CollectionName, AdminSchema);
+export const Folder = coreConnection.model(CollectionName, FolderSchema);
