@@ -4,7 +4,6 @@ import { fileURLToPath } from 'url';
 import pkg from 'googleapis';
 import { getId } from './driveInfo.js';
 import getParentCategory from '../../constants/CategoryMap.js';
-import BaseModel from '../../config/models/BaseModel.js';
 import dotenv from 'dotenv';
 import { Folder } from '../../config/models/Folder.js';
 dotenv.config();
@@ -70,17 +69,19 @@ export const uploadFileToDrive = async (fileOptions, folder) => {
   }
 }
 
-/** 
- * Download a list of drive Files By Category
- */
+/* Download a list of drive Files By Category */
 export const downloadFiles = async (category) => {
-  console.log(`starting download process for category: ${category}...`);
+  console.log(`starting download process for category: ${category}`);
   const driveService = google.drive({version: 'v3', auth});
+  console.log('pi');
   const parentFolderId = [getId(category)];
+  console.log('parent folder id');
+  console.log(parentFolderId);
   const listResponse = await driveService.files.list({
     q: 'trashed=false and "' + parentFolderId + '" in parents',
     fields: 'nextPageToken, files(id, name)'
   });
+  console.log('list');
 
   switch(listResponse.status) {
     case 200:
@@ -99,21 +100,24 @@ export const downloadFiles = async (category) => {
   }
 }
 
-/** 
- * Download a single file
- */
+/* Download a single file */
 const downloadFile = async (fileId, filename, category) => {
   const driveService = google.drive({version: 'v3', auth});
   const parentCategory = getParentCategory(category);
 
   if (category) {
+    console.log('ji');
     const filePath = `public/${parentCategory}/${category}`;
+    console.log('ok');
     const pathExists = fs.existsSync(filePath);
+    console.log('pathExists');
+    console.log(pathExists);
     if (!pathExists) {
       fs.mkdirSync(filePath, { recursive: true });
     }
   }
 
+  console.log('bojo');
   const writeStream = fs.createWriteStream(path.join(__dirname, '..', '..', '..', 'public', parentCategory, category, filename));
   const response = await driveService.files.get(
     { fileId: fileId, alt: 'media'},
@@ -164,9 +168,10 @@ export const addNewFolder = async (folderName, category) => {
   const parentFolderId = [matchParentFolderNameToId(category)];
 
   const file = await createFolder(folderName, parentFolderId, driveService);
+  const folderId = file?.data?.id;
+  await createFolderRecord({ name: folderName, driveId: folderId }, category);
 
   // Added: Transfer owner of created folder from service account to your Google account.
-  const folderId = file.data.id;
   console.log(`Created new folder ${folderName} under category ${category}`);
   if (!folderId) return;
   const res2 = await driveService.permissions
@@ -184,6 +189,9 @@ export const addNewFolder = async (folderName, category) => {
     .catch((err) => console.log(err));
 }
 
+/**
+ * Logic to create the Folder in the Drive
+ */
 const createFolder = async (folderName, parentFolderId, service) => {
   const fileMetadata = {
     name: folderName,
@@ -200,12 +208,18 @@ const createFolder = async (folderName, parentFolderId, service) => {
   }
 }
 
+/**
+ * Retrieve the folderId of a Category
+ */
 const matchParentFolderNameToId = (category) => {
   const folderId = process.env[`DRIVE_${category.toUpperCase()}`];
-  // console.log(`Matched Category ${category} to FolderId ${folderId}`);
+  console.log(`Matched Category ${category} to FolderId ${folderId}`);
   return folderId;
 }
 
+/**
+ * Retrieve the folderId from the DB
+ */
 const getFolderDriveId = async (folderName) => {
   const folder = await Folder.findOne({name: folderName});
   if (!folder) console.error(`Folder not found with name ${folderName}`);
@@ -214,13 +228,18 @@ const getFolderDriveId = async (folderName) => {
   }
 }
 
+/**
+ * Creates a folder record in DB
+ */
 const createFolderRecord = async (folder, category) => {
+  console.log(`Attempting to save folder to db with this info:`);
+  console.log(folder, category)
   try {
     const exists = await Folder.findOne({name: folder.name});
     if (!exists) {
       const newFolder = new Folder();
       newFolder.name = folder.name;
-      newFolder.driveId = folder.id;
+      newFolder.driveId = folder.driveId;
       newFolder.category = category;
       await newFolder.save();
       console.log(`saved new folder ${folder.name}`);

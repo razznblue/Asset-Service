@@ -126,6 +126,8 @@ app.post("/upload", async (req, res) => {
       mimetype: file.mimetype,
       filepath: filePath
     }
+    console.log(`fileOptions`);
+    console.log(fileOptions);
 
     res.status(200).send({
       message: `File will be uploaded to ${parentCategory}/${folder} folder`,

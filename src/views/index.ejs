@@ -30,7 +30,13 @@
     <form method="POST" action="/drive/folders" enctype="application/x-www-form-urlencoded" class="upload-widget" id="new-folder-container">
       <h3>Add a NEW drive folder under a category</h3>
       <input name="folder" type="text" placeholder="Folder Name" class="upload-item">
-      <input name="category" type="text" placeholder='Must be one of ["IMAGES", "AUDIO", "JSON"]' class="upload-item">
+      <label for="category">Choose Parent Folder Below</label>
+      <select name="category" id="category">
+        <option value="IMAGES">IMAGES</option>
+        <option value="AUDIO">AUDIO</option>
+        <option value="JSON">JSON</option>
+      </select>
+      <!-- <input name="category" type="text" placeholder='Must be one of ["IMAGES", "AUDIO", "JSON"]' class="upload-item"> -->
       <input type="submit">
     </form><hr class="hr">
 
