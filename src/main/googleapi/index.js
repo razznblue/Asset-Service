@@ -88,7 +88,9 @@ export const downloadFiles = async (category) => {
         });
         console.log(`processing files under /${category}/${folder.name}...`)
         for (const file of listResponse?.data?.files) {
+          console.log(`Starting to process file ${file.name}`)
           await downloadFile(file.id, file.name, folder.name, category)
+          console.log(`Finished processing file ${file.name}`)
         }
       }
       console.log(`Finished downloading all ${category} files...`);
@@ -101,6 +103,11 @@ export const downloadFiles = async (category) => {
 
 /* Download a single file */
 const downloadFile = async (fileId, filename, folderName, category) => {
+  console.log('file details');
+  console.log(fileId);
+  console.log(filename);
+  console.log(folderName);
+  console.log(category);
   const driveService = google.drive({version: 'v3', auth});
 
   if (category) {
