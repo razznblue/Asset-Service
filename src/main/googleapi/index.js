@@ -88,9 +88,7 @@ export const downloadFiles = async (category) => {
         });
         console.log(`processing files under /${category}/${folder.name}...`)
         for (const file of listResponse?.data?.files) {
-          console.log(`Starting to process file ${file.name}`)
           await downloadFile(file.id, file.name, folder.name, category)
-          console.log(`Finished processing file ${file.name}`)
         }
       }
       console.log(`Finished downloading all ${category} files...`);
@@ -103,11 +101,6 @@ export const downloadFiles = async (category) => {
 
 /* Download a single file */
 const downloadFile = async (fileId, filename, folderName, category) => {
-  console.log('file details');
-  console.log(fileId);
-  console.log(filename);
-  console.log(folderName);
-  console.log(category);
   const driveService = google.drive({version: 'v3', auth});
 
   if (category) {
@@ -187,7 +180,7 @@ export const addNewFolder = async (folderName, category) => {
       transferOwnership: false,
       moveToNewOwnersRoot: true,
     })
-    .catch((err) => console.log(err));
+    .catch((err) => console.error(err));
 }
 
 /**
@@ -241,7 +234,7 @@ const createFolderRecord = async (folder, category) => {
       newFolder.driveId = folder.driveId;
       newFolder.category = category;
       await newFolder.save();
-      console.log(`saved new folder ${folder.name}`);
+      console.log(`saved new folder ${folder.name} to db`);
     }
   } catch(err) {
     console.error(`Error saving folder ${folder}`, err?.message);

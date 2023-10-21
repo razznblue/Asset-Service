@@ -16,17 +16,11 @@ const listPaths = async (res, folderName) => {
   const folderPath = path.join(__dirname, '..', '..', 'public', folderName);
   const directories = await readdir(folderPath, { withFileTypes: true });
 
-  console.log('directories');
-  console.log(directories);
-
   if (directories) {
     let response = {};
     const directoryNames = directories.filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
-    console.log('directory names');
-    console.log(directoryNames);
     for (const dir of directoryNames) {
       const resourcePath = path.join(__dirname, '..', '..', 'public', folderName, dir);
-      console.log(`resourcePath: ${resourcePath}`)
       const files = await readdir(resourcePath, { withFileTypes: true });
       if (files) {
         for (const file of files) {
