@@ -3,9 +3,7 @@ dotenv.config();
 
 const Constants = {
   port: process.env.PORT || 8000,
-  baseurl: process.env.NODE_ENV === 'production' 
-    ? process.env.BASE_URL
-    : `http://localhost:${process.env.PORT}`,
+  baseurl: process.env.BASE_URL,
   categories: ['IMAGES', 'AUDIO', 'JSON']
 }
 
