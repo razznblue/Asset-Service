@@ -3,7 +3,6 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import pkg from 'googleapis';
 import { getId } from './driveInfo.js';
-import getParentCategory from '../../constants/CategoryMap.js';
 import dotenv from 'dotenv';
 import { Folder } from '../../config/models/Folder.js';
 dotenv.config();
@@ -29,11 +28,8 @@ export const uploadFileToDrive = async (fileOptions, folder) => {
   const driveService = google.drive({ version: 'v3', auth });
   const parentFolderId = await getFolderDriveId(folder);
   const { filename, mimetype, filepath } = fileOptions;
-
-  console.log('irur');
-  console.log(parentFolderId);
-  console.log(fileOptions);
-
+  console.log(`Attempting to upload file ${filename} to drive with filePath ${filepath}`);
+  
   // Set the metaData and Media in preparation for file upload.
   let fileMetaData = {
     name: filename,
@@ -73,15 +69,11 @@ export const uploadFileToDrive = async (fileOptions, folder) => {
 export const downloadFiles = async (category) => {
   console.log(`starting download process for category: ${category}`);
   const driveService = google.drive({version: 'v3', auth});
-  console.log('pi');
   const parentFolderId = [getId(category)];
-  console.log('parent folder id');
-  console.log(parentFolderId);
   const listResponse = await driveService.files.list({
     q: 'trashed=false and "' + parentFolderId + '" in parents',
     fields: 'nextPageToken, files(id, name)'
   });
-  console.log('list');
 
   switch(listResponse.status) {
     case 200:
@@ -89,8 +81,15 @@ export const downloadFiles = async (category) => {
         console.log(`${category} drive folder is empty`);
         return;
       }
-      for (const file of listResponse.data.files) {
-        await downloadFile(file.id, file.name, category);
+      for (const folder of listResponse.data.files) {
+        const listResponse = await driveService.files.list({
+          q: 'trashed=false and "' + [folder.id] + '" in parents',
+          fields: 'nextPageToken, files(id, name)'
+        });
+        console.log(`processing files under /${category}/${folder.name}...`)
+        for (const file of listResponse?.data?.files) {
+          await downloadFile(file.id, file.name, folder.name, category)
+        }
       }
       console.log(`Finished downloading all ${category} files...`);
       return listResponse.data;
@@ -101,24 +100,18 @@ export const downloadFiles = async (category) => {
 }
 
 /* Download a single file */
-const downloadFile = async (fileId, filename, category) => {
+const downloadFile = async (fileId, filename, folderName, category) => {
   const driveService = google.drive({version: 'v3', auth});
-  const parentCategory = getParentCategory(category);
 
   if (category) {
-    console.log('ji');
-    const filePath = `public/${parentCategory}/${category}`;
-    console.log('ok');
+    const filePath = `public/${category}/${folderName}`;
     const pathExists = fs.existsSync(filePath);
-    console.log('pathExists');
-    console.log(pathExists);
     if (!pathExists) {
       fs.mkdirSync(filePath, { recursive: true });
     }
   }
 
-  console.log('bojo');
-  const writeStream = fs.createWriteStream(path.join(__dirname, '..', '..', '..', 'public', parentCategory, category, filename));
+  const writeStream = fs.createWriteStream(path.join(__dirname, '..', '..', '..', 'public', category, folderName, filename));
   const response = await driveService.files.get(
     { fileId: fileId, alt: 'media'},
     { responseType: 'stream' }
@@ -135,6 +128,7 @@ const downloadFile = async (fileId, filename, category) => {
 
 /* List all folders in Category */
 export const getFolderNames = async (category) => {
+  console.log(`tryna get folder names for category ${category}`)
   const driveService = google.drive({version: 'v3', auth});
   const folders = [];
   const parentFolderId = [matchParentFolderNameToId(category)];
@@ -232,8 +226,6 @@ const getFolderDriveId = async (folderName) => {
  * Creates a folder record in DB
  */
 const createFolderRecord = async (folder, category) => {
-  console.log(`Attempting to save folder to db with this info:`);
-  console.log(folder, category)
   try {
     const exists = await Folder.findOne({name: folder.name});
     if (!exists) {

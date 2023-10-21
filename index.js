@@ -10,7 +10,6 @@ import cors from 'cors';
 import Constants from "./src/constants/Constants.js";
 import listPaths from "./src/main/all.js";
 import { uploadFileToDrive, downloadFiles, addNewFolder, getFolderNames } from "./src/main/googleapi/index.js";
-import getParentCategory from "./src/constants/CategoryMap.js";
 import isValidMimetype from "./src/constants/MimeType.js";
 
 dotenv.config();
@@ -19,7 +18,10 @@ const env = process.env.NODE_ENV;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PORT = Constants.port;
-const baseurl = Constants.baseurl;
+const { baseurl, categories } = Constants;
+
+
+/* <--- Required for UPLOADing files locally ---> */
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -42,7 +44,6 @@ const storage = multer.diskStorage({
     cb(null, file.originalname)
   }
 });
-
 const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
@@ -53,26 +54,35 @@ const upload = multer({
     }
   }
 });
-
 const uploadSingleImage = upload.single('asset');
 
+/* Ping app to avoid going to sleep */
 setInterval(async () => {
   await axios.get(Constants.baseurl);
   console.log('App Pinged');
 }, 600000);
 
-// Cors Functionality
+/* MIDDLEWARE */
 app.use(cors({ origin: '*' }));
-
 app.set("view engine", "ejs"); 
 app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
+/* <--- ROUTES ---> */
+
+/* LOGIN PAGE */
 app.get("/", (req, res) => {
-  const categories = ["IMAGES", "AUDIO", "JSON"];
-  res.render(`${__dirname}/src/views/index.ejs`, { baseurl: baseurl, categories: categories });
-});
+  res.render(`${__dirname}/src/views/index.ejs`);
+})
+
+/* Dashboard Page */
+app.get("/dashboard", (req, res) => {
+  req?.query?.password === process.env.ADMIN_PASSWORD
+    ? res.render(`${__dirname}/src/views/dashboard.ejs`, { baseurl: baseurl, categories: categories })
+    : res.json({msg: `You are not authorized`})
+})
 
 /**
  * Lists ALL of the files metadata in json format
@@ -126,8 +136,6 @@ app.post("/upload", async (req, res) => {
       mimetype: file.mimetype,
       filepath: filePath
     }
-    console.log(`fileOptions`);
-    console.log(fileOptions);
 
     res.status(200).send({
       message: `File will be uploaded to ${parentCategory}/${folder} folder`,
@@ -148,7 +156,6 @@ app.post("/upload", async (req, res) => {
 app.post('/drive/folders', async (req, res) => {
   const folderName = req?.body?.folder;
   const category = req?.body?.category;
-  const categories = ['IMAGES', 'AUDIO', 'JSON'];
   if (!categories.includes(category)) return res.status(400).send(`Category must be one of "IMAGES", "AUDIO", or "JSON"`);
   res.send(`Folder ${folderName} will be created under category ${category}`);
 
@@ -157,7 +164,6 @@ app.post('/drive/folders', async (req, res) => {
 })
 
 app.get('/drive/folders', async(req, res) => {
-  const categories = ['IMAGES', 'AUDIO', 'JSON'];
   if (req?.query?.category && categories.includes(req?.query?.category)) {
     console.log(`Returning all folders under category ${req?.query?.category}`)
     return res.send(await getFolderNames(req?.query?.category));
@@ -170,13 +176,5 @@ app.get('/drive/folders', async(req, res) => {
   return res.send(IMAGES.concat(AUDIO, JSON));
 })
 
-app.listen(PORT || 8000, () => {
-  // Download all assets from drive after every PRODUCTION deploy
-  setTimeout(async () => {
-    if (process.env.NODE_ENV === 'production') {
-      console.log(`Production server started. Setting up hosted assets...`);
-      await axios.get(`${baseurl}/drive/download`);
-    }
-  }, 5000);
-  console.log(`Listening to ${env} server on PORT ${PORT}`);
-});
+
+app.listen(PORT || 8000, () => console.log(`Listening to ${env} server on PORT ${PORT}`));
