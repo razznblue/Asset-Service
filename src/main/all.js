@@ -19,15 +19,23 @@ const listPaths = async (res, folderName) => {
   if (directories) {
     let response = {};
     const directoryNames = directories.filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
+    console.log('directory names');
+    console.log(directoryNames);
     for (const dir of directoryNames) {
       const resourcePath = path.join(__dirname, '..', '..', 'public', folderName, dir);
+      console.log(`resourcePath: ${resourcePath}`)
       const files = await readdir(resourcePath, { withFileTypes: true });
-      for (const file of files) {
-        file.url = `${Constants.baseurl}/${folderName}/${dir}/${file.name}`;
-        file.name = file.name;
-      }
-      response[dir] = {
-        files: files,
+      if (files) {
+        for (const file of files) {
+          file.url = `${Constants.baseurl}/${folderName}/${dir}/${file.name}`;
+          file.name = file.name;
+        }
+        response[dir] = {
+          files: files,
+        }
+      } else {
+        console.log(`files is invalid:`);
+        console.log(files);
       }
     }
 
@@ -38,6 +46,9 @@ const listPaths = async (res, folderName) => {
         return accumulator;
     }, {});
     return response;
+  } else {
+    console.log(`Could not list files for folder ${folderName} because directories is an unexpected value: ${directories}`)
+    return false
   }
 }
 
