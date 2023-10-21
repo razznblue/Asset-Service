@@ -5,51 +5,22 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/views/style.css">
-  <title>SWGU Library</title>
+  <title>Asset Service | LOGIN</title>
 </head>
 <body>
   <div class="container">
-    <h1>SWGU Library</h1>
-    <div class="actions">
-
-      <h2>ACTIONS:</h2>
-      <p><a href="<%= baseurl + '/all' %>"><-- VIEW ALL ASSETS --></a></p>
-      <p><a href="<%= baseurl + '/drive/download' %>"><-- DOWNLOAD ENTIRE DRIVE --></a></p>
-      <p><-- DOWNLOAD FROM DRIVE BY CATEGORY --></p>
-      <select name="Category-Download" id="category-download" onchange="downloadCategory()">
-        <option selected disabled>Triggers On Change</option>
-        <% for (let i = 0; i < categories.length; i++) { %>
-          <option value="<%= categories[i] %>"><%= categories[i] %></option>
-        <% } %>
-      </select>
+    <div id="head">
+      <h1>ASSET SERVICE</h1>
+      <p>A platform designed to store, host, and retrieve assets, photos, files, etc.</p><hr class="hr">
     </div>
 
-    <form method="POST" action="/upload" enctype="multipart/form-data" id="upload-container">
-      <h3>Upload a Single File</h3>
-      <select name="Category" id="category">
-        <option selected disabled>Category</option>
-        <% for (let i = 0; i < categories.length; i++) { %>
-          <option value="<%= categories[i] %>"><%= categories[i] %></option>
-        <% } %>
-      </select>
-      <input type="file" name="asset" id="file-upload">
-      <input type="submit" id="submit">
+    <form action="/dashboard" class="upload-widget">
+      <h3>Login to continue</h3>
+      <!-- <input name="category" type="text" placeholder='Must be one of ["IMAGES", "AUDIO", "JSON"]' class="upload-item"> -->
+      <input name="password" type="password" placeholder="Enter Password" required>
+      <input type="submit">
     </form>
   </div>
-
-
-
-  <script>
-    const downloadCategory = () => {
-      const category = document.querySelector('#category-download').value;
-      if (category) {
-        const link = document.createElement('a');
-        link.href = `/drive/download?category=${category}`;
-        console.log(link.href);
-        link.click();
-      }
-    }
-  </script>
 
 </body>
 </html>

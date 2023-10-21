@@ -10,7 +10,7 @@ const __dirname = dirname(__filename);
 
 const listPaths = async (res, folderName) => {
   if (!fs.existsSync(path.join(__dirname, '..', '..', 'public', folderName))) {
-    return {'msg': `${folderName} folder not found. Maybe try triggering a download from the home page?`};
+    return {'msg': `${folderName} data not found. Try triggering a download from the home page`};
   }
   const folderPath = path.join(__dirname, '..', '..', 'public', folderName);
   const directories = await readdir(folderPath, { withFileTypes: true });
