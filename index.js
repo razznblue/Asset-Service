@@ -89,7 +89,7 @@ app.get("/dashboard", (req, res) => {
  */
 app.get("/all", async(req, res) => {
   const response = {}
-  const folders = ['images', 'audio', 'json'];
+  const folders = ['IMAGES', 'AUDIO', 'JSON'];
   for (const folder of folders) {
     const paths = await listPaths(res, folder);
     response[folder] = paths;

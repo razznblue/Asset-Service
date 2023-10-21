@@ -16,6 +16,9 @@ const listPaths = async (res, folderName) => {
   const folderPath = path.join(__dirname, '..', '..', 'public', folderName);
   const directories = await readdir(folderPath, { withFileTypes: true });
 
+  console.log('directories');
+  console.log(directories);
+
   if (directories) {
     let response = {};
     const directoryNames = directories.filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
