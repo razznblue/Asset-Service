@@ -1,0 +1,153 @@
+<------ NOTES ----->
+
+- Gear of rarity 3 and lower is not upgradable nor equipable. They are strictly for crafting or selling purposes.
+
+-Gear of rarity 4 and 5 are both upgradable and equipable. Both also have a crafting recipe. All items in the crafting recipe must be of tier level 1, 2, or 3.
+
+- Tier 3 gear are generally(not always) prototypes for tier 4 or 5 gear. (ex. lightsaber prototype)
+
+- Recipes will generally include(not always) scraps of the material involved, a prototype of the gear, and possibly other materials. See the example below of a Beskar Spear. The recipe for it is 15 Beskar Scraps, 30 Melee Weapon Salvages, and 10 Beskar Spear Prototypes.
+
+- Some gear will include a manufacturer. This will not affect the gear in anyway, and currently is just present for organizational purposes.
+
+
+<----- MONGO COLLECTIONS ----->
+
+/* GEAR */
+[
+	{
+		"_id": ObjectId("<ID_HERE>")
+		"name": "Beskar Scrap"
+		"equipable": false,
+		"upgradable": false,
+		"tier": 2,
+	},
+	{
+		"_id": ObjectId("<ID_HERE>")
+		"name": "Melee Weapon Salvage"
+		"equipable": false,
+		"upgradable": false,
+		"tier": 1,
+	},
+	{
+		"_id": ObjectId("<ID_HERE>")
+		"name": "Beskar Spear Prototype"
+		"equipable": false,
+		"upgradable": false,
+		"tier": 3,
+	},
+	{
+		"_id": ObjectId("<ID_HERE>")
+		"name": "Beskar Spear"
+		"equipable": true, (set in code)
+		"upgradable": true, (set in code)
+		"maxMake": "4",
+		"make": "1", (set in code)
+		"tier": 5,
+		"craftingRecipe": "_id": ObjectId("<ID_OF_BESKAR_SPEAR_RECIPE>")
+		"stats": {
+			"power": 132,
+			"speed": 0,
+			"attack": 1050,
+			"defense": 0,
+			"health": 0,
+			"protection": 1950,
+			"evasion": 450,
+			"criticalChancePercentage": 0,
+			"criticalDamagePercentage": 3,
+		}
+		"bonuses": [
+			"Mandalorian"
+		]
+	}
+]
+
+/* RECIPE */
+[
+	{
+		"_id": ObjectId("<ID_HERE>")
+		"gearId": ObjectId("<ID_OF_BESKAR_SPEAR>")
+		"craftingCost": "25000"
+		"craftingRecipe": [
+			{
+				"gearId": ObjectId("<ID_OF_BESKAR_SCRAP>")
+				"count": 15
+			},
+			{
+				"gearId": ObjectId("<ID_OF_SPEAR_PROTOTYPE>")
+				"count": 10
+			},
+			{
+			"gearId": ObjectId("<ID_MELEE_WEAPON_SALVAGE>")
+				"count": 30
+			}
+		]
+	}
+]
+
+/* GearUpgrade */
+[
+	{
+		"_id": ObjectId("<ID_HERE>"),
+		"gearId": ObjectId("<ID_OF_BESKAR_SPEAR>"),
+		"makeLevel": 2,
+		"statIncreasePercentage": 25,
+		"upgradeCost": "20000",
+		"upgradeRecipe": [
+			{
+				"gearId": ObjectId("<ID_OF_BESKAR_SCRAP>")
+				"count": 20
+			},
+			{
+				"gearId": ObjectId("<ID_OF_SPEAR_PROTOTYPE>")
+				"count": 15
+			},
+			{
+			"gearId": ObjectId("<ID_MELEE_WEAPON_SALVAGE>")
+				"count": 35
+			}
+		]
+	},
+	{
+		"_id": ObjectId("<ID_HERE>"),
+		"gearId": ObjectId("<ID_OF_BESKAR_SPEAR>"),
+		"makeLevel": 3,
+		"statIncreasePercentage": 50,
+		"upgradeCost": "35000",
+		"upgradeRecipe": [
+			{
+				"gearId": ObjectId("<ID_OF_BESKAR_SCRAP>")
+				"count": 30
+			},
+			{
+				"gearId": ObjectId("<ID_OF_SPEAR_PROTOTYPE>")
+				"count": 25
+			},
+			{
+			"gearId": ObjectId("<ID_MELEE_WEAPON_SALVAGE>")
+				"count": 45
+			}
+		] 
+	},
+	{
+		"_id": ObjectId("<ID_HERE>"),
+		"gearId": ObjectId("<ID_OF_BESKAR_SPEAR>"),
+		"makeLevel": 4,
+		"statIncreasePercentage": 75,
+		"upgradeCost": "50500",
+		"upgradeRecipe": [
+			{
+				"gearId": ObjectId("<ID_OF_BESKAR_SCRAP>")
+				"count": 50
+			},
+			{
+				"gearId": ObjectId("<ID_OF_SPEAR_PROTOTYPE>")
+				"count": 40
+			},
+			{
+			"gearId": ObjectId("<ID_MELEE_WEAPON_SALVAGE>")
+				"count": 75
+			}
+		]
+	},
+]

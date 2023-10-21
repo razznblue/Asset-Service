@@ -9,6 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const listPaths = async (res, folderName) => {
+  console.log(`Listing paths for baseurl ${Constants.baseurl}`);
   if (!fs.existsSync(path.join(__dirname, '..', '..', 'public', folderName))) {
     return {'msg': `${folderName} data not found. Try triggering a download from the home page`};
   }
