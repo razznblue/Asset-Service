@@ -11,15 +11,26 @@
   <div class="container">
     <div id="head">
       <h1>ASSET SERVICE</h1>
-      <p>A platform designed to store, host, and retrieve assets, photos, files, etc.</p><hr class="hr">
+      <p>A platform designed to store, host, and retrieve assets, photos, files, etc.</p>
+      <hr class="hr">
     </div>
 
     <form action="/dashboard" class="upload-widget">
-      <h3>Login to continue</h3>
+      <h2>Login to continue</h2>
       <!-- <input name="category" type="text" placeholder='Must be one of ["IMAGES", "AUDIO", "JSON"]' class="upload-item"> -->
-      <input name="password" type="password" placeholder="Enter Password" required>
-      <input type="submit">
+      <input class="input" name="password" type="password" placeholder="Enter Password" required>
+      <input class="input" type="submit">
     </form>
+    <hr class="hr">
+
+    <h2>Capabilities</h2>
+    <ul id="capabilities">
+      <li>Upload an image, audio, or text file</li>
+      <li>Receive an instant public url for the file</li>
+      <li>Create a new drive folder dynamically</li>
+      <li>Programatically upload an image directly from your application</li>
+    </ul>
+
   </div>
 
 </body>

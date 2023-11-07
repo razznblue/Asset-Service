@@ -1,5 +1,5 @@
 * {padding: 0;margin: 0;box-sizing: border-box;}
-body {background: rgb(129, 129, 129);}
+body {background: #5488b6;}
 a {text-decoration: none;color: black;}
 h1 {margin: 0.5rem 0}
 
@@ -14,13 +14,25 @@ select {
   place-items: center;
 }
 
+/* Login Page */
+.input {
+  padding: 1rem;
+}
+#capabilities {
+  list-style: none;
+}
+#capabilities li {
+  text-align: center;
+  font-size: max(20px, 1rem)
+}
+
 #head {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
-#head p {padding: 0.3rem 0; font-size: 20px;}
+#head p {padding: 0.6rem 0; font-size: 20px;}
 
 .actions {
   min-height: 100%;
