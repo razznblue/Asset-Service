@@ -1,10 +1,10 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 
 const Constants = {
   port: process.env.PORT || 8000,
   baseurl: process.env.BASE_URL,
-  categories: ['IMAGES', 'AUDIO', 'JSON']
-}
+  categories: ["images", "audio", "json"],
+};
 
 export default Constants;
