@@ -103,7 +103,7 @@ app.get("/all", async (req, res) => {
 });
 
 /**
- * Downloads Files by folder or ALL at once
+ * Downloads Files by category or ALL at once
  */
 app.get("/drive/download", async (req, res) => {
   console.log("Downloading ENTIRE Drive");
@@ -176,7 +176,7 @@ app.post("/upload-file", upload, async (req, res) => {
     fieldname: file.fieldname,
   });
 
-  await uploadFileToDrive(fileOptions, folder);
+  await uploadFileToDrive(fileOptions, category, folder);
 });
 
 /**
