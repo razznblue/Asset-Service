@@ -14,8 +14,10 @@ import {
   downloadFiles,
   addNewFolder,
   getFolderNames,
+  fetchFileURL,
 } from "./src/main/googleapi/index.js";
 import isValidMimetype from "./src/constants/MimeType.js";
+import {generateObjectId} from "./src/config/mongoose.js";
 
 dotenv.config();
 const app = express();
@@ -34,7 +36,6 @@ app.use(cors({origin: "*"}));
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      console.log("query: ", req?.query);
       const category = req?.query?.category ? req?.query?.category : "";
       const folder = req?.query?.folder ? req?.query?.folder : "";
 
@@ -50,7 +51,12 @@ const upload = multer({
       cb(null, filePath);
     },
     filename: (req, file, cb) => {
-      cb(null, file.originalname);
+      const filename = file.originalname;
+      const id = generateObjectId();
+      req.assetId = id;
+      req.originalFilename = filename;
+      console.log(`Saving file with name ${filename} and id ${id}:`);
+      cb(null, `${id.toString()}-${filename}`);
     },
   }),
   fileFilter: (req, file, cb) => {
@@ -147,6 +153,7 @@ app.post("/upload-file", upload, async (req, res) => {
     folder,
     file.filename
   );
+  const url = `${baseurl}/${category}/${folder}/${file.filename}`;
 
   // Ensure directory exists
   try {
@@ -160,7 +167,9 @@ app.post("/upload-file", upload, async (req, res) => {
   }
 
   const fileOptions = {
-    filename: file.filename,
+    id: req?.assetId,
+    url: url,
+    filename: req?.originalFilename,
     mimetype: file.mimetype,
     filepath: filePath,
   };
@@ -205,6 +214,16 @@ app.get("/drive/folders", async (req, res) => {
   const AUDIO = await getFolderNames("AUDIO");
   const JSON = await getFolderNames("JSON");
   return res.send(IMAGES.concat(AUDIO, JSON));
+});
+
+app.get("/drive/asset/:assetId", async (req, res) => {
+  const assetId = req?.params?.assetId;
+  if (!assetId) {
+    return res
+      .status(500)
+      .send({message: `No/Invalid assetId ${assetId} found on request`});
+  }
+  return await fetchFileURL(assetId);
 });
 
 app.listen(PORT || 8000, () =>

@@ -26,13 +26,13 @@ const auth = new google.auth.GoogleAuth({
 /**
  * Uploads a single file to the Drive
  * @param {*} fileOptions (filename, filepath, mimetype)
- * @param {*} folder The category under which the file will be uploaded to
+ * @param {*} category The category under which the file will be uploaded to
  * @param {*} folder The folder inside category under which the file will be uploaded to
  */
 export const uploadFileToDrive = async (fileOptions, category, folder) => {
   const driveService = google.drive({version: "v3", auth});
   const parentFolderId = await getFolderDriveId(folder);
-  const {filename, mimetype, filepath} = fileOptions;
+  const {id, url, filename, mimetype, filepath} = fileOptions;
   console.log(
     `Attempting to upload file ${filename} to drive with filePath ${filepath}`
   );
@@ -69,20 +69,23 @@ export const uploadFileToDrive = async (fileOptions, category, folder) => {
 
   switch (createResponse.status) {
     case 200:
-      console.log(`File [${filename}] uploaded to drive in folder [${folder}]`);
+      console.log(
+        `File with id ${id} and name [${filename}] uploaded to drive under folder [${folder}]`
+      );
+      console.log("url: ", url);
       console.log("driveId: ", createResponse?.data?.id);
-      console.log("uploadDate: ", createResponse?.headers?.date);
       console.log("fileName: ", filename);
       console.log("filePath: ", filepath);
       console.log("folder: ", folder);
       console.log("category: ", category);
       await createAssetRecord(
+        id,
+        url,
         filename,
         filepath,
         createResponse?.data?.id,
         category,
-        folder,
-        createResponse?.headers?.date
+        folder
       );
       break;
     default:
@@ -161,6 +164,53 @@ const downloadFile = async (fileId, filename, folderName, category) => {
       return;
     default:
       console.error(`Error downloading file: ${response.status}`);
+  }
+};
+
+export const fetchFileURL = async (assetId) => {
+  const driveService = google.drive({version: "v3", auth});
+
+  const asset = await fetchAsset(assetId);
+
+  if (asset != null) {
+    const fileId = asset.driveId;
+    const filename = asset.fileName;
+    const folder = asset.folder;
+    const category = asset.category;
+
+    if (category) {
+      const filePath = `public/${category}/${folder}`;
+      const pathExists = fs.existsSync(filePath);
+      if (!pathExists) {
+        fs.mkdirSync(filePath, {recursive: true});
+      }
+    }
+
+    const writeStream = fs.createWriteStream(
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "public",
+        category,
+        folder,
+        filename
+      )
+    );
+    const response = await driveService.files.get(
+      {fileId: fileId, alt: "media"},
+      {responseType: "stream"}
+    );
+
+    switch (response.status) {
+      case 200:
+        response.data.pipe(writeStream);
+        return asset.filePath;
+        return;
+      default:
+        console.error(`Error downloading file: ${response.status}`);
+    }
   }
 };
 
@@ -286,23 +336,25 @@ const createFolderRecord = async (folder, category) => {
  * Creates a folder record in DB
  */
 const createAssetRecord = async (
+  id,
+  url,
   filename,
   filepath,
   driveId,
   category,
-  folder,
-  uploadDate
+  folder
 ) => {
   try {
     const exists = await Asset.findOne({driveId: driveId});
     if (!exists) {
       const newAsset = new Asset();
+      newAsset._id = id;
+      newAsset.url = url;
       newAsset.fileName = filename;
       newAsset.filePath = filepath;
       newAsset.driveId = driveId;
       newAsset.category = category;
       newAsset.folder = folder;
-      newAsset.uploadDate = uploadDate;
       await newAsset.save();
       console.log(
         `saved new asset with driveId ${driveId} and name ${filename} to db`
@@ -313,4 +365,13 @@ const createAssetRecord = async (
   } catch (err) {
     console.error(`Error saving asset ${filename}`, err?.message);
   }
+
+  const fetchAsset = async (assetId) => {
+    try {
+      const exists = await Asset.findById(assetId);
+      return exists || null;
+    } catch (err) {
+      console.error(`err fecthing asset with driveId ${driveId}`, err);
+    }
+  };
 };
