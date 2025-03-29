@@ -1,99 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/views/style.css">
-  <title>Asset Service</title>
-</head>
-<body>
-  <div class="container">
-    <div id="head">
-      <h1>ASSET SERVICE</h1>
-      <p>A platform designed to store, host, and retrieve assets, photos, files, etc.</p><hr class="hr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/views/style.css" />
+    <title>Asset Service</title>
+  </head>
+  <body>
+    <div class="container">
+      <div id="head">
+        <h1>ASSET SERVICE</h1>
+        <p>
+          A platform designed to store, host, and retrieve assets, photos,
+          files, etc.
+        </p>
+        <hr class="hr" />
+      </div>
+
+      <div class="actions">
+        <h2>ACTIONS:</h2>
+        <p><a href="<%= baseurl + '/all' %>"><-- VIEW ALL ASSETS --></a></p>
+        <p>
+          <a href="<%= baseurl + '/drive/download' %>"
+            ><-- DOWNLOAD ENTIRE DRIVE --></a
+          >
+        </p>
+        <p><-- DOWNLOAD FROM DRIVE BY CATEGORY --></p>
+        <select
+          name="Category-Download"
+          id="category-download"
+          onchange="downloadCategory()"
+        >
+          <option selected disabled>Triggers On Change</option>
+          <% for (let i = 0; i < categories.length; i++) { %>
+          <option value="<%= categories[i] %>"><%= categories[i] %></option>
+          <% } %>
+        </select>
+      </div>
+      <hr class="hr" />
+
+      <form
+        method="POST"
+        action="/drive/folders"
+        enctype="application/x-www-form-urlencoded"
+        class="upload-widget"
+        id="new-folder-container"
+      >
+        <h3>Add a NEW drive folder</h3>
+        <input
+          name="folder"
+          type="text"
+          placeholder="Folder Name"
+          class="upload-item"
+        />
+        <label for="category">Choose Parent Folder:</label>
+        <select name="category" id="category">
+          <option value="IMAGES">IMAGES</option>
+          <option value="AUDIO">AUDIO</option>
+          <option value="JSON">JSON</option>
+        </select>
+        <!-- <input name="category" type="text" placeholder='Must be one of ["IMAGES", "AUDIO", "JSON"]' class="upload-item"> -->
+        <input type="submit" />
+      </form>
+      <hr class="hr" />
+
+      <!-- <form
+        method="POST"
+        action="/upload-file"
+        enctype="multipart/form-data"
+        class="upload-widget"
+        id="upload-container"
+      >
+        <h3>
+          UPLOAD a Single File(Currently broken. Switched to using api route
+          /upload-file programatically)
+        </h3>
+        <select
+          name="Category"
+          class="upload-item"
+          id="category-upload"
+          onchange="populateFolders()"
+        >
+          <option selected disabled>Category</option>
+          <% for (let i = 0; i < categories.length; i++) { %>
+          <option value="<%= categories[i] %>"><%= categories[i] %></option>
+          <% } %>
+        </select>
+        <select name="Folder" class="upload-item" id="category-folder">
+         <option selected disabled>Folders(choose category first)</option>
+        </select>
+        <input type="file" name="asset" class="upload-item" id="file-upload" />
+        <input type="submit" id="submit" />
+      </form> -->
     </div>
 
-    <div class="actions">
-      <h2>ACTIONS:</h2>
-      <p><a href="<%= baseurl + '/all' %>"><-- VIEW ALL ASSETS --></a></p>
-      <p><a href="<%= baseurl + '/drive/download' %>"><-- DOWNLOAD ENTIRE DRIVE --></a></p>
-      <p><-- DOWNLOAD FROM DRIVE BY CATEGORY --></p>
-      <select name="Category-Download" id="category-download" onchange="downloadCategory()">
-        <option selected disabled>Triggers On Change</option>
-        <% for (let i = 0; i < categories.length; i++) { %>
-          <option value="<%= categories[i] %>"><%= categories[i] %></option>
-        <% } %>
-      </select>
-    </div><hr class="hr">
-
-    <form method="POST" action="/drive/folders" enctype="application/x-www-form-urlencoded" class="upload-widget" id="new-folder-container">
-      <h3>Add a NEW drive folder</h3>
-      <input name="folder" type="text" placeholder="Folder Name" class="upload-item">
-      <label for="category">Choose Parent Folder:</label>
-      <select name="category" id="category">
-        <option value="IMAGES">IMAGES</option>
-        <option value="AUDIO">AUDIO</option>
-        <option value="JSON">JSON</option>
-      </select>
-      <!-- <input name="category" type="text" placeholder='Must be one of ["IMAGES", "AUDIO", "JSON"]' class="upload-item"> -->
-      <input type="submit">
-    </form><hr class="hr">
-
-    <form method="POST" action="/upload" enctype="multipart/form-data" class="upload-widget" id="upload-container">
-      <h3>UPLOAD a Single File</h3>
-      <select name="Category" class="upload-item" id="category-upload" onchange="populateFolders()">
-        <option selected disabled>Category</option>
-        <% for (let i = 0; i < categories.length; i++) { %>
-          <option value="<%= categories[i] %>"><%= categories[i] %></option>
-        <% } %>
-      </select>
-      <select name="Folder" class="upload-item" id="category-folder">
-        <!-- <option selected disabled>Folders(choose category first)</option> -->
-      </select>
-      <input type="file" name="asset" class="upload-item" id="file-upload">
-      <input type="submit" id="submit">
-    </form>
-  </div>
-
-
-
-  <script>
-    const downloadCategory = () => {
-      const category = document.querySelector('#category-download').value;
-      if (category) {
-        const link = document.createElement('a');
-        link.href = `/drive/download?category=${category}`;
-        link.click();
-      }
-    }
-
-    const populateFolders = async () => {
-      const category = document.querySelector('#category-upload').value;
-      if (category) {
-        /* call node route to get folders by category */
-        const response = await fetch(`/drive/folders?category=${category}`);
-        if (!response.ok) throw new Error('Request failed with status ' + response.status);
-        const categoryFolderSelect = document.querySelector('#category-folder');
-        /* Remove any previously populated folders */
-        while (categoryFolderSelect.firstChild) {
-          categoryFolderSelect.removeChild(categoryFolderSelect.firstChild);
+    <script>
+      const downloadCategory = () => {
+        const category = document.querySelector("#category-download").value;
+        if (category) {
+          const link = document.createElement("a");
+          link.href = `/drive/download?category=${category}`;
+          link.click();
         }
+      };
 
-        /* Populate the category-folder Select element with options */
-        const data = await response.json();
-        for (let i = 0; i < data.length; i++) {
-          const folderName = data[i];
-          const optionElement = document.createElement('option');
-          optionElement.value = folderName;
-          optionElement.name = folderName;
-          optionElement.textContent = folderName;
-          categoryFolderSelect.appendChild(optionElement);
+      const populateFolders = async () => {
+        const category = document.querySelector("#category-upload").value;
+        if (category) {
+          /* call node route to get folders by category */
+          const response = await fetch(`/drive/folders?category=${category}`);
+          if (!response.ok)
+            throw new Error("Request failed with status " + response.status);
+          const categoryFolderSelect =
+            document.querySelector("#category-folder");
+          /* Remove any previously populated folders */
+          while (categoryFolderSelect.firstChild) {
+            categoryFolderSelect.removeChild(categoryFolderSelect.firstChild);
+          }
+
+          /* Populate the category-folder Select element with options */
+          const data = await response.json();
+          for (let i = 0; i < data.length; i++) {
+            const folderName = data[i];
+            const optionElement = document.createElement("optfion");
+            optionElement.value = folderName;
+            optionElement.name = folderName;
+            optionElement.textContent = folderName;
+            categoryFolderSelect.appendChild(optionElement);
+          }
         }
-      }
-    }
-
-  </script>
-
-</body>
+      };
+    </script>
+  </body>
 </html>

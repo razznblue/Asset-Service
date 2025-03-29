@@ -1,16 +1,23 @@
 import express from "express";
 import axios from "axios";
 import dotenv from "dotenv";
-import { fileURLToPath } from 'url';
-import path, { dirname } from 'path';
+import {fileURLToPath} from "url";
+import path, {dirname} from "path";
 import fs from "fs";
 import multer from "multer";
-import cors from 'cors';
+import cors from "cors";
 
 import Constants from "./src/constants/Constants.js";
 import listPaths from "./src/main/all.js";
-import { uploadFileToDrive, downloadFiles, addNewFolder, getFolderNames } from "./src/main/googleapi/index.js";
+import {
+  uploadFileToDrive,
+  downloadFiles,
+  addNewFolder,
+  getFolderNames,
+  fetchFileURL,
+} from "./src/main/googleapi/index.js";
 import isValidMimetype from "./src/constants/MimeType.js";
+import {generateObjectId} from "./src/config/mongoose.js";
 
 dotenv.config();
 const app = express();
@@ -18,78 +25,80 @@ const env = process.env.NODE_ENV;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PORT = Constants.port;
-const { baseurl, categories } = Constants;
+const {baseurl, categories} = Constants;
 
+/* MIDDLEWARE */
+app.set("view engine", "ejs");
+app.use(express.static("public"));
+app.use(cors({origin: "*"}));
 
-/* <--- Required for UPLOADing files locally ---> */
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    let filePath = null;
-    const category = req?.body?.Category;
-    const folder = req?.body?.Folder
-    if (category && folder) {
-      filePath = `public/${category}/${folder}`;
-      const pathExists = fs.existsSync(filePath);
-      if (!pathExists) {
-        fs.mkdirSync(filePath, { recursive: true });
-      }
-    } else {
-      console.error(`Could not upload file to local storage. Category: ${category}, Folder: ${folder}`);
-    }
-
-    cb(null, filePath !== null ? filePath : `public/${parentCategory}`);
-  },
-  filename: (err, file, cb) => {
-    cb(null, file.originalname)
-  }
-});
+/* <--- Required for Uploading files locally ---> */
 const upload = multer({
-  storage: storage,
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const category = req?.query?.category ? req?.query?.category : "";
+      const folder = req?.query?.folder ? req?.query?.folder : "";
+
+      // Construct full path
+      const filePath = folder
+        ? path.join(__dirname, "public", category, folder)
+        : path.join(__dirname, "public", category);
+
+      // Create directory if it doesn't exist
+      fs.mkdirSync(filePath, {recursive: true});
+      console.log("Upload destination:", filePath);
+
+      cb(null, filePath);
+    },
+    filename: (req, file, cb) => {
+      const filename = file.originalname;
+      const id = generateObjectId();
+      req.assetId = id;
+      console.log(`Saving file with name ${filename} and id ${id}:`);
+      cb(null, `${id.toString()}-${filename}`);
+    },
+  }),
   fileFilter: (req, file, cb) => {
     if (isValidMimetype(file.mimetype)) {
       cb(null, true);
     } else {
-      return cb(new Error(`File not uploaded. Invalid mime type found: [${file.mimetype}]`));
+      cb(new Error(`Invalid mime type: [${file.mimetype}]`));
     }
-  }
-});
-const uploadSingleImage = upload.single('asset');
+  },
+}).single("asset");
+
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 
 /* Ping app to avoid going to sleep */
 setInterval(async () => {
   await axios.get(Constants.baseurl);
-  console.log('App Pinged');
+  console.log("App Pinged");
 }, 600000);
-
-/* MIDDLEWARE */
-app.use(cors({ origin: '*' }));
-app.set("view engine", "ejs"); 
-app.use(express.static("public"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 
 /* <--- ROUTES ---> */
 
 /* LOGIN PAGE */
 app.get("/", (req, res) => {
   res.render(`${__dirname}/src/views/index.ejs`);
-})
+});
 
 /* Dashboard Page */
 app.get("/dashboard", (req, res) => {
   req?.query?.password === process.env.ADMIN_PASSWORD
-    ? res.render(`${__dirname}/src/views/dashboard.ejs`, { baseurl: baseurl, categories: categories })
-    : res.json({msg: `You are not authorized`})
-})
+    ? res.render(`${__dirname}/src/views/dashboard.ejs`, {
+        baseurl: baseurl,
+        categories: categories,
+      })
+    : res.json({msg: `You are not authorized`});
+});
 
 /**
  * Lists ALL of the files metadata in json format
  */
-app.get("/all", async(req, res) => {
-  const response = {}
-  const folders = ['IMAGES', 'AUDIO', 'JSON'];
+app.get("/all", async (req, res) => {
+  const response = {};
+  const folders = ["IMAGES", "AUDIO", "JSON"];
   for (const folder of folders) {
     const paths = await listPaths(res, folder);
     response[folder] = paths;
@@ -99,11 +108,11 @@ app.get("/all", async(req, res) => {
 });
 
 /**
- * Downloads Files by folder or ALL at once
+ * Downloads Files by category or ALL at once
  */
-app.get("/drive/download", async(req, res) => {
-  console.log('Downloading ENTIRE Drive');
-  const ALL = 'all'
+app.get("/drive/download", async (req, res) => {
+  console.log("Downloading ENTIRE Drive");
+  const ALL = "all";
   const category = !req.query.category ? ALL : req.query.category;
   const responseMsg = `downloading ${category} files from drive... Check logs for status. You can exit out of this page now.`;
   const finishMsg = `Finished Entire Download Process`;
@@ -111,7 +120,11 @@ app.get("/drive/download", async(req, res) => {
     res.send(responseMsg);
     const categories = Constants.categories;
     for (const category of categories) {
-      await downloadFiles(category);
+      try {
+        await downloadFiles(category);
+      } catch (err) {
+        console.error(`err fetching category ${category}`, err);
+      }
     }
     console.log(finishMsg);
     return;
@@ -122,59 +135,96 @@ app.get("/drive/download", async(req, res) => {
 });
 
 /**
- * UPLOADS a single file to a specific folder
+ * Programatically add File to Drive
  */
-app.post("/upload", async (req, res) => {
-  uploadSingleImage(req, res, async (err) => {
-    if (err) { return res.status(400).send({ message: err.message }) };
-    const file = req.file;
-    const parentCategory = req?.body?.Category
-    const folder = req?.body?.Folder;
-    const filePath = path.join(__dirname, 'public', parentCategory, folder, file.filename );
-    const fileOptions = {
-      filename: file.filename,
-      mimetype: file.mimetype,
-      filepath: filePath
-    }
+app.post("/upload-file", upload, async (req, res) => {
+  if (!req.file || !req.file) {
+    return res.status(400).json({message: "No file found. Not uploaded"});
+  }
 
-    res.status(200).send({
-      message: `File will be uploaded to ${parentCategory}/${folder} folder`,
-      url: `${baseurl}/${parentCategory}/${folder}/${file.filename}`,
-      filename: file.filename,
-      mimetype: file.mimetype,
-      size: file.size,
-      fieldname: file.fieldname
+  const file = req.file;
+  const category = req?.body?.category;
+  const folder = req?.body?.folder;
+  const filePath = path.join(
+    __dirname,
+    "public",
+    category,
+    folder,
+    file.filename
+  );
+  const url = `${baseurl}/${category}/${folder}/${file.filename}`;
+
+  // Ensure directory exists
+  try {
+    fs.mkdirSync(path.dirname(filePath), {recursive: true});
+  } catch (mkdirError) {
+    console.error("Error creating directory:", mkdirError);
+    return res.status(500).json({
+      message: "Failed to create upload directory",
+      error: mkdirError.message,
     });
+  }
 
-    await uploadFileToDrive(fileOptions, folder);
+  const fileOptions = {
+    id: req?.assetId,
+    url: url,
+    filename: file.filename,
+    mimetype: file.mimetype,
+    filepath: filePath,
+  };
+
+  console.log("fileOptions: ", fileOptions);
+
+  res.status(200).send({
+    message: `File will be uploaded to ${category}/${folder} folder`,
+    url: `${baseurl}/${category}/${folder}/${file.filename}`,
+    filename: file.filename,
+    mimetype: file.mimetype,
+    size: file.size,
+    fieldname: file.fieldname,
   });
+
+  await uploadFileToDrive(fileOptions, category, folder);
 });
 
 /**
  * Add a New Folder to the Drive under a specific Category
  */
-app.post('/drive/folders', async (req, res) => {
+app.post("/drive/folders", async (req, res) => {
   const folderName = req?.body?.folder;
   const category = req?.body?.category;
-  if (!categories.includes(category)) return res.status(400).send(`Category must be one of "IMAGES", "AUDIO", or "JSON"`);
+  if (!categories.includes(category))
+    return res
+      .status(400)
+      .send(`Category must be one of "IMAGES", "AUDIO", or "JSON"`);
   res.send(`Folder ${folderName} will be created under category ${category}`);
 
-  await addNewFolder(folderName, category)
+  await addNewFolder(folderName, category);
+});
 
-})
-
-app.get('/drive/folders', async(req, res) => {
+app.get("/drive/folders", async (req, res) => {
   if (req?.query?.category && categories.includes(req?.query?.category)) {
-    console.log(`Returning all folders under category ${req?.query?.category}`)
+    console.log(`Returning all folders under category ${req?.query?.category}`);
     return res.send(await getFolderNames(req?.query?.category));
   }
 
   console.log(`Returning all folders under all categories`);
-  const IMAGES = await getFolderNames('IMAGES');
-  const AUDIO = await getFolderNames('AUDIO');
-  const JSON = await getFolderNames('JSON');
+  const IMAGES = await getFolderNames("IMAGES");
+  const AUDIO = await getFolderNames("AUDIO");
+  const JSON = await getFolderNames("JSON");
   return res.send(IMAGES.concat(AUDIO, JSON));
-})
+});
 
+app.get("/drive/asset/:assetId", async (req, res) => {
+  const assetId = req?.params?.assetId;
+  if (!assetId) {
+    return res
+      .status(500)
+      .send({message: `No/Invalid assetId ${assetId} found on request`});
+  }
+  res.send(await fetchFileURL(assetId));
+});
 
-app.listen(PORT || 8000, () => console.log(`Listening to ${env} server on PORT ${PORT}`));
+app.listen(PORT || 8000, () =>
+  console.log(`Listening to ${env} server on PORT ${PORT}`)
+);
