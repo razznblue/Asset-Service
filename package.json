@@ -1,6 +1,6 @@
 {
   "name": "asset-service",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "description": "A service interacting with google drive to upload/retrieve files",
   "main": "index.js",
   "type": "module",
