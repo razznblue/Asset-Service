@@ -54,7 +54,6 @@ const upload = multer({
       const filename = file.originalname;
       const id = generateObjectId();
       req.assetId = id;
-      req.originalFilename = filename;
       console.log(`Saving file with name ${filename} and id ${id}:`);
       cb(null, `${id.toString()}-${filename}`);
     },
@@ -169,7 +168,7 @@ app.post("/upload-file", upload, async (req, res) => {
   const fileOptions = {
     id: req?.assetId,
     url: url,
-    filename: req?.originalFilename,
+    filename: file.filename,
     mimetype: file.mimetype,
     filepath: filePath,
   };
