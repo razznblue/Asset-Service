@@ -223,7 +223,7 @@ app.get("/drive/asset/:assetId", async (req, res) => {
       .status(500)
       .send({message: `No/Invalid assetId ${assetId} found on request`});
   }
-  return await fetchFileURL(assetId);
+  res.send(await fetchFileURL(assetId));
 });
 
 app.listen(PORT || 8000, () =>

@@ -168,50 +168,8 @@ const downloadFile = async (fileId, filename, folderName, category) => {
 };
 
 export const fetchFileURL = async (assetId) => {
-  const driveService = google.drive({version: "v3", auth});
-
   const asset = await fetchAsset(assetId);
-
-  if (asset != null) {
-    const fileId = asset.driveId;
-    const filename = asset.fileName;
-    const folder = asset.folder;
-    const category = asset.category;
-
-    if (category) {
-      const filePath = `public/${category}/${folder}`;
-      const pathExists = fs.existsSync(filePath);
-      if (!pathExists) {
-        fs.mkdirSync(filePath, {recursive: true});
-      }
-    }
-
-    const writeStream = fs.createWriteStream(
-      path.join(
-        __dirname,
-        "..",
-        "..",
-        "..",
-        "public",
-        category,
-        folder,
-        filename
-      )
-    );
-    const response = await driveService.files.get(
-      {fileId: fileId, alt: "media"},
-      {responseType: "stream"}
-    );
-
-    switch (response.status) {
-      case 200:
-        response.data.pipe(writeStream);
-        return asset.filePath;
-        return;
-      default:
-        console.error(`Error downloading file: ${response.status}`);
-    }
-  }
+  return asset?.url || "";
 };
 
 /* List all folders in Category */
@@ -365,13 +323,13 @@ const createAssetRecord = async (
   } catch (err) {
     console.error(`Error saving asset ${filename}`, err?.message);
   }
+};
 
-  const fetchAsset = async (assetId) => {
-    try {
-      const exists = await Asset.findById(assetId);
-      return exists || null;
-    } catch (err) {
-      console.error(`err fecthing asset with driveId ${driveId}`, err);
-    }
-  };
+const fetchAsset = async (assetId) => {
+  try {
+    const exists = await Asset.findById(assetId);
+    return exists || null;
+  } catch (err) {
+    console.error(`err fecthing asset with driveId ${driveId}`, err);
+  }
 };
